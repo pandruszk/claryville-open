@@ -1,0 +1,116 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Scorecard Entry</h1>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/groups">Groups</a>
+  <a href="/admin/inbox">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/scores" class="active">Scores</a>
+</nav>
+
+<!-- Contest Winners -->
+<div class="admin-section">
+  <h2>Contest Winners</h2>
+  <form method="POST" action="/admin/contests" class="form">
+    <div class="contest-grid">
+      <div class="form-group">
+        <label>Closest to Pin (Male)</label>
+        <input type="text" name="closest_pin_male_name" placeholder="Player name" value="<%= contests.closest_pin_male?.player_name || '' %>">
+        <input type="text" name="closest_pin_male_value" placeholder="Distance" value="<%= contests.closest_pin_male?.value || '' %>" style="margin-top:0.25rem">
+      </div>
+      <div class="form-group">
+        <label>Closest to Pin (Female)</label>
+        <input type="text" name="closest_pin_female_name" placeholder="Player name" value="<%= contests.closest_pin_female?.player_name || '' %>">
+        <input type="text" name="closest_pin_female_value" placeholder="Distance" value="<%= contests.closest_pin_female?.value || '' %>" style="margin-top:0.25rem">
+      </div>
+      <div class="form-group">
+        <label>Longest Drive (Male)</label>
+        <input type="text" name="longest_drive_male_name" placeholder="Player name" value="<%= contests.longest_drive_male?.player_name || '' %>">
+        <input type="text" name="longest_drive_male_value" placeholder="Distance" value="<%= contests.longest_drive_male?.value || '' %>" style="margin-top:0.25rem">
+      </div>
+      <div class="form-group">
+        <label>Longest Drive (Female)</label>
+        <input type="text" name="longest_drive_female_name" placeholder="Player name" value="<%= contests.longest_drive_female?.player_name || '' %>">
+        <input type="text" name="longest_drive_female_value" placeholder="Distance" value="<%= contests.longest_drive_female?.value || '' %>" style="margin-top:0.25rem">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Save Contest Winners</button>
+  </form>
+</div>
+
+<!-- Scorecards -->
+<% if (groups.length === 0) { %>
+  <div class="alert alert-info">No groups registered yet.</div>
+<% } else { %>
+  <% for (const group of groups) { %>
+    <% if (group.players.length === 0) continue; %>
+    <% const score = allScores[group.id]; %>
+    <div class="admin-section scorecard">
+      <div class="scorecard-header">
+        <h3>
+          <%= group.name %>
+          <span class="form-hint">(<%= group.players.map(p => p.name).join(', ') %>)</span>
+        </h3>
+        <div class="scorecard-strokes">
+          <span class="badge badge-strokes">Strokes: <%= group.strokeInfo.capped %><% if (group.strokeInfo.wasCapped) { %> (capped)<% } %></span>
+          <% if (score) { %>
+            <span class="badge badge-complete">Gross: <%= score.gross_total %> | Net: <%= score.net_total %></span>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- Stroke breakdown -->
+      <details class="stroke-details">
+        <summary>Stroke breakdown</summary>
+        <div class="stroke-breakdown">
+          <% for (const pr of group.strokeInfo.players) { %>
+            <div class="stroke-player">
+              <strong><%= pr.name %></strong> (<%= pr.strokes > 0 ? '+' : '' %><%= pr.strokes %>)
+              <% if (pr.breakdown.length > 0) { %>
+                <ul><% for (const b of pr.breakdown) { %><li><%= b %></li><% } %></ul>
+              <% } else { %>
+                <span class="form-hint">No adjustments</span>
+              <% } %>
+            </div>
+          <% } %>
+          <div class="stroke-total">
+            Raw total: <%= group.strokeInfo.rawTotal %> |
+            Applied: <strong><%= group.strokeInfo.capped %></strong>
+            <% if (group.strokeInfo.wasCapped) { %>(Sandbagger Rule: capped at -10)<% } %>
+          </div>
+        </div>
+      </details>
+
+      <form method="POST" action="/admin/scores/<%= group.id %>" class="form score-form">
+        <div class="holes-grid">
+          <div class="nine-holes">
+            <strong>Front 9</strong>
+            <div class="hole-inputs">
+              <% for (let i = 1; i <= 9; i++) { %>
+                <div class="hole-input">
+                  <label><%= i %></label>
+                  <input type="number" name="hole_<%= i %>" min="1" max="15" value="<%= score ? score['hole_' + i] || '' : '' %>">
+                </div>
+              <% } %>
+            </div>
+          </div>
+          <div class="nine-holes">
+            <strong>Back 9</strong>
+            <div class="hole-inputs">
+              <% for (let i = 10; i <= 18; i++) { %>
+                <div class="hole-input">
+                  <label><%= i %></label>
+                  <input type="number" name="hole_<%= i %>" min="1" max="15" value="<%= score ? score['hole_' + i] || '' : '' %>">
+                </div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Scores</button>
+      </form>
+    </div>
+  <% } %>
+<% } %>

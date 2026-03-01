@@ -1,0 +1,88 @@
+<% layout('layout') -%>
+<div class="page-header">
+  <h1>Rules</h1>
+  <p>Welcome to the <%= settings.tournament_year || '2025' %> Claryville Open</p>
+</div>
+
+<section class="rules-section">
+  <h2>Format — Scramble</h2>
+  <ul class="rules-list">
+    <li>Each team member hits a drive. One drive per team member.</li>
+    <li>Choose the best drive. Pick up all other balls. Each team member hits second shot from point of best drive. One shot per team member.</li>
+    <li>Choose best second shot. Pick up all other balls. Each team member hits third shot from point of best second shot. One shot per team member.</li>
+    <li>Continue in this fashion until the ball is in the hole.</li>
+    <li><strong>At least 2 drives must be used for each team member under the age of 65</strong> — must be indicated on your scorecard.</li>
+    <li>Teams of 3 may have 4 attempts at each shot, rotating the player who makes the second attempt.</li>
+    <li><strong>No "gimmes", no mulligans, no cheating!!</strong></li>
+    <li>Turn in cards at the Firehouse BBQ.</li>
+  </ul>
+</section>
+
+<section class="rules-section">
+  <h2>Team Stroke Rules</h2>
+  <p>The Rules Committee has set the team stroke rules as follows:</p>
+
+  <div class="strokes-table-wrap">
+    <table class="strokes-table">
+      <thead>
+        <tr><th>Condition</th><th>Strokes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Each player over 65</td><td class="stroke-minus">-1</td></tr>
+        <tr><td>Each player over 75</td><td class="stroke-minus">-1</td></tr>
+        <tr><td>Each player over 80</td><td class="stroke-minus">-1</td></tr>
+        <tr><td>Each player over 85</td><td class="stroke-minus">-1</td></tr>
+        <tr><td>Each player over 90</td><td class="stroke-minus">-1</td></tr>
+        <tr><td>Each female player</td><td class="stroke-minus">-2</td></tr>
+        <tr><td>Each player under 16</td><td class="stroke-minus">-1</td></tr>
+        <tr><td>Each player under 10</td><td class="stroke-minus">-1</td></tr>
+        <tr><td>Never played golf on a course</td><td class="stroke-minus">-1</td></tr>
+        <tr><td>Had a heart attack, stroke, or brain tumor</td><td class="stroke-minus">-1</td></tr>
+        <tr><td>Current/former U.S. military</td><td class="stroke-minus">-1</td></tr>
+        <tr><td>Post-partum women (up to one year after delivery)</td><td class="stroke-minus">-1</td></tr>
+        <tr class="stroke-penalty"><td>Played on a high school golf team (until age 55)</td><td class="stroke-plus">+1</td></tr>
+        <tr class="stroke-penalty"><td>Played on a college golf team (until age 55)</td><td class="stroke-plus">+1</td></tr>
+        <tr class="stroke-penalty"><td>Played on PGA or LPGA Tour</td><td class="stroke-plus">+10</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="rules-notes">
+    <p><strong>Sandbagger Rule:</strong> No team shall be awarded more than 10 strokes.</p>
+    <p>No strokes awarded for team members who do not compete.</p>
+    <p>Age-based strokes are cumulative (e.g., a player over 80 receives -1 for over 65, -1 for over 75, and -1 for over 80 = -3 total).</p>
+  </div>
+</section>
+
+<section class="rules-section">
+  <h2>Tee Box Assignment</h2>
+  <div class="strokes-table-wrap">
+    <table class="strokes-table tee-table">
+      <thead>
+        <tr><th>Player</th><th>Tee</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Men with GHIN index &lt; 10</td><td><span class="tee-dot" style="background:#1a1a1a"></span> Black</td></tr>
+        <tr><td>Men</td><td><span class="tee-dot" style="background:#2d5016"></span> Green</td></tr>
+        <tr><td>Men over 80</td><td><span class="tee-dot" style="background:#c9a84c"></span> Gold</td></tr>
+        <tr><td>Men over 90</td><td><span class="tee-dot" style="background:#e87a2a"></span> Orange</td></tr>
+        <tr><td>Women</td><td><span class="tee-dot" style="background:#d4b800"></span> Yellow</td></tr>
+        <tr><td>Women over 80</td><td><span class="tee-dot" style="background:#e87a2a"></span> Orange</td></tr>
+        <tr><td>Kids under 10</td><td><span class="tee-dot" style="background:#e87a2a"></span> Orange</td></tr>
+        <tr><td>Only plays golf at the Claryville Open</td><td><span class="tee-dot" style="background:#e87a2a"></span> Orange</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="rules-section">
+  <h2>Prizes</h2>
+  <ul class="prizes-list">
+    <li>Low Net Team Score</li>
+    <li>Low Gross Team</li>
+    <li>High Net Team Score</li>
+    <li>Closest to the Pin — Male &amp; Female</li>
+    <li>Longest Drive — Male &amp; Female</li>
+  </ul>
+  <p class="form-hint">In the event of a tie, teams will compare scorecards in reverse order from the 18th hole to determine a winner.</p>
+</section>

@@ -1,0 +1,76 @@
+<% layout('layout') -%>
+<div class="page-header">
+  <h1>Groups</h1>
+</div>
+
+<% if (complete.length === 0 && looking.length === 0) { %>
+  <div class="alert alert-info">No groups registered yet. <a href="/register">Be the first to sign up!</a></div>
+<% } %>
+
+<% if (looking.length > 0) { %>
+  <section>
+    <h2 class="section-title">Looking for Group</h2>
+    <p class="section-desc">These teams have open spots. <a href="/register">Register</a> to join the fun!</p>
+    <div class="group-grid">
+      <% for (const group of looking) { %>
+        <div class="group-card group-looking">
+          <div class="group-card-header">
+            <h3><%= group.name %></h3>
+            <span class="badge badge-looking"><%= group.players.length %>/4 players</span>
+          </div>
+          <ul class="player-list">
+            <% for (const p of group.players) { %>
+              <li>
+                <span class="tee-dot" style="background:<%= p.teeColor %>"></span>
+                <%= p.name %>
+                <% if (p.age) { %><span class="player-meta">age <%= p.age %></span><% } %>
+              </li>
+            <% } %>
+          </ul>
+          <div class="group-strokes">
+            Team Strokes: <strong><%= group.strokeInfo.capped %></strong>
+            <% if (group.strokeInfo.wasCapped) { %><span class="capped">(capped at -10)</span><% } %>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </section>
+<% } %>
+
+<% if (complete.length > 0) { %>
+  <section>
+    <h2 class="section-title">Registered Foursomes</h2>
+    <div class="group-grid">
+      <% for (const group of complete) { %>
+        <div class="group-card">
+          <div class="group-card-header">
+            <h3><%= group.name %></h3>
+            <span class="badge badge-complete">Full</span>
+          </div>
+          <ul class="player-list">
+            <% for (const p of group.players) { %>
+              <li>
+                <span class="tee-dot" style="background:<%= p.teeColor %>"></span>
+                <%= p.name %>
+                <% if (p.age) { %><span class="player-meta">age <%= p.age %></span><% } %>
+              </li>
+            <% } %>
+          </ul>
+          <div class="group-strokes">
+            Team Strokes: <strong><%= group.strokeInfo.capped %></strong>
+            <% if (group.strokeInfo.wasCapped) { %><span class="capped">(capped at -10)</span><% } %>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </section>
+<% } %>
+
+<p class="form-hint" style="margin-top:1rem">
+  <span class="tee-dot" style="background:#1a1a1a"></span> Black
+  <span class="tee-dot" style="background:#2d5016;margin-left:.75rem"></span> Green
+  <span class="tee-dot" style="background:#c9a84c;margin-left:.75rem"></span> Gold
+  <span class="tee-dot" style="background:#e87a2a;margin-left:.75rem"></span> Orange
+  <span class="tee-dot" style="background:#d4b800;margin-left:.75rem"></span> Yellow
+  — See <a href="/rules">rules</a> for tee assignments.
+</p>

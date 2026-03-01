@@ -1,0 +1,156 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Manage Groups</h1>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/groups" class="active">Groups</a>
+  <a href="/admin/inbox">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/scores">Scores</a>
+</nav>
+
+<div class="admin-actions">
+  <form method="POST" action="/admin/groups/create" class="form-inline">
+    <input type="text" name="name" placeholder="New group name" required>
+    <button type="submit" class="btn btn-small">Create Group</button>
+  </form>
+</div>
+
+<details class="admin-actions">
+  <summary style="cursor:pointer;font-weight:600">Add Player</summary>
+  <form method="POST" action="/admin/players/add" class="form" style="margin-top:0.75rem">
+    <div class="form-row">
+      <div class="form-group"><label>Name *</label><input type="text" name="name" required></div>
+      <div class="form-group"><label>Email</label><input type="email" name="email"></div>
+      <div class="form-group form-group-small"><label>Age</label><input type="number" name="age" min="1" max="110"></div>
+      <div class="form-group form-group-small">
+        <label>Gender</label>
+        <select name="gender"><option value="">—</option><option value="male">Male</option><option value="female">Female</option></select>
+      </div>
+      <div class="form-group form-group-small"><label>GHIN</label><input type="number" name="ghin_index" step="0.1"></div>
+    </div>
+    <div class="checkbox-grid" style="margin:0.5rem 0">
+      <label class="checkbox-label"><input type="checkbox" name="is_military" value="1"> Military</label>
+      <label class="checkbox-label"><input type="checkbox" name="never_played_course" value="1"> Never played on course</label>
+      <label class="checkbox-label"><input type="checkbox" name="heart_attack_stroke_tumor" value="1"> Heart attack/stroke/tumor</label>
+      <label class="checkbox-label"><input type="checkbox" name="played_high_school_golf" value="1"> HS golf team</label>
+      <label class="checkbox-label"><input type="checkbox" name="played_college_golf" value="1"> College golf team</label>
+      <label class="checkbox-label"><input type="checkbox" name="played_pga_lpga" value="1"> PGA/LPGA</label>
+      <label class="checkbox-label"><input type="checkbox" name="is_post_partum" value="1"> Post-partum</label>
+      <label class="checkbox-label"><input type="checkbox" name="only_plays_claryville" value="1"> Only plays at Claryville Open</label>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Group</label>
+        <select name="group_id">
+          <option value="">No group</option>
+          <% for (const g of groups) { %>
+            <option value="<%= g.id %>"><%= g.name %> (<%= g.players.length %>/4)</option>
+          <% } %>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary" style="margin-bottom:1rem">Add Player</button>
+    </div>
+  </form>
+</details>
+
+<% if (ungrouped.length > 0) { %>
+  <section class="admin-section">
+    <h2>Ungrouped Players (<%= ungrouped.length %>)</h2>
+    <table class="admin-table">
+      <thead>
+        <tr><th>Tee</th><th>Name</th><th>Age</th><th>Gender</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        <% for (const p of ungrouped) { %>
+          <tr>
+            <td><span class="tee-dot" style="background:<%= p.teeColor %>"></span> <%= p.teeBox %></td>
+            <td><%= p.name %><% if (p.email) { %> <span class="form-hint">(<%= p.email %>)</span><% } %></td>
+            <td><%= p.age || '—' %></td>
+            <td><%= p.gender || '—' %></td>
+            <td class="actions">
+              <form method="POST" action="/admin/players/move" class="form-inline">
+                <input type="hidden" name="player_id" value="<%= p.id %>">
+                <select name="group_id">
+                  <% for (const g of groups) { %>
+                    <option value="<%= g.id %>"><%= g.name %></option>
+                  <% } %>
+                </select>
+                <button type="submit" class="btn btn-small">Move</button>
+              </form>
+              <form method="POST" action="/admin/players/<%= p.id %>/delete" class="form-inline" onsubmit="return confirm('Delete this player?')">
+                <button type="submit" class="btn btn-small btn-danger">Del</button>
+              </form>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </section>
+<% } %>
+
+<section class="admin-section">
+  <h2>All Groups (<%= groups.length %>)</h2>
+  <% for (const group of groups) { %>
+    <div class="admin-group-card">
+      <div class="admin-group-header">
+        <h3>
+          <%= group.name %>
+          <span class="badge <%= group.status === 'complete' ? 'badge-complete' : 'badge-looking' %>"><%= group.status === 'complete' ? 'Full' : group.players.length + '/4' %></span>
+          <span class="badge badge-strokes">Strokes: <%= group.strokeInfo.capped %><% if (group.strokeInfo.wasCapped) { %> (capped)<% } %></span>
+        </h3>
+        <div class="admin-group-actions">
+          <form method="POST" action="/admin/groups/<%= group.id %>/rename" class="form-inline">
+            <input type="text" name="name" value="<%= group.name %>" size="15">
+            <button type="submit" class="btn btn-small">Rename</button>
+          </form>
+          <form method="POST" action="/admin/groups/<%= group.id %>/delete" class="form-inline" onsubmit="return confirm('Delete this group? Players will be ungrouped.')">
+            <button type="submit" class="btn btn-small btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+      <% if (group.players.length > 0) { %>
+        <table class="admin-table">
+          <thead>
+            <tr><th>Tee</th><th>Name</th><th>Age</th><th>Gender</th><th>Strokes</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <% for (const p of group.players) { %>
+              <%
+                const pi = group.strokeInfo.players.find(x => x.name === p.name);
+                const pStrokes = pi ? pi.strokes : 0;
+                const pBreakdown = pi ? pi.breakdown : [];
+              %>
+              <tr>
+                <td><span class="tee-dot" style="background:<%= p.teeColor %>"></span> <%= p.teeBox %></td>
+                <td><%= p.name %><% if (p.email) { %> <span class="form-hint">(<%= p.email %>)</span><% } %></td>
+                <td><%= p.age || '—' %></td>
+                <td><%= p.gender || '—' %></td>
+                <td title="<%= pBreakdown.join(', ') %>"><%= pStrokes > 0 ? '+' : '' %><%= pStrokes %></td>
+                <td class="actions">
+                  <form method="POST" action="/admin/players/move" class="form-inline">
+                    <input type="hidden" name="player_id" value="<%= p.id %>">
+                    <select name="group_id">
+                      <option value="">Ungroup</option>
+                      <% for (const g of groups) { if (g.id !== group.id) { %>
+                        <option value="<%= g.id %>"><%= g.name %></option>
+                      <% } } %>
+                    </select>
+                    <button type="submit" class="btn btn-small">Move</button>
+                  </form>
+                  <form method="POST" action="/admin/players/<%= p.id %>/delete" class="form-inline" onsubmit="return confirm('Delete?')">
+                    <button type="submit" class="btn btn-small btn-danger">Del</button>
+                  </form>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      <% } else { %>
+        <p class="empty-message">No players in this group.</p>
+      <% } %>
+    </div>
+  <% } %>
+</section>

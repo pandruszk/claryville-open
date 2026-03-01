@@ -1,0 +1,135 @@
+<% layout('layout') -%>
+<div class="page-header">
+  <h1>Leaderboard</h1>
+</div>
+
+<% if (!published) { %>
+  <div class="alert alert-info">Results will be posted after the tournament. Check back soon!</div>
+<% } else { %>
+
+  <% if (netLeaderboard.length === 0) { %>
+    <div class="alert alert-info">No scores entered yet.</div>
+  <% } else { %>
+
+    <%
+      const lowGrossWinner = grossLeaderboard.length > 0 ? grossLeaderboard[0] : null;
+      const lowNetWinner = netLeaderboard.length > 0 ? netLeaderboard[0] : null;
+    %>
+
+    <div class="winners">
+      <% if (lowNetWinner) { %>
+        <div class="winner-card winner-net">
+          <h3>Low Net</h3>
+          <p class="winner-name"><%= lowNetWinner.group_name %></p>
+          <p class="winner-score"><%= lowNetWinner.net_total %></p>
+        </div>
+      <% } %>
+      <% if (lowGrossWinner) { %>
+        <div class="winner-card">
+          <h3>Low Gross</h3>
+          <p class="winner-name"><%= lowGrossWinner.group_name %></p>
+          <p class="winner-score"><%= lowGrossWinner.gross_total %></p>
+        </div>
+      <% } %>
+      <% if (highNet) { %>
+        <div class="winner-card winner-high">
+          <h3>High Net</h3>
+          <p class="winner-name"><%= highNet.group_name %></p>
+          <p class="winner-score"><%= highNet.net_total %></p>
+        </div>
+      <% } %>
+    </div>
+
+    <% const ctp_m = contests.closest_pin_male; %>
+    <% const ctp_f = contests.closest_pin_female; %>
+    <% const ld_m = contests.longest_drive_male; %>
+    <% const ld_f = contests.longest_drive_female; %>
+
+    <% if (ctp_m || ctp_f || ld_m || ld_f) { %>
+      <div class="contest-winners">
+        <% if (ctp_m) { %>
+          <div class="contest-card">
+            <h4>Closest to Pin (Male)</h4>
+            <p><%= ctp_m.player_name %><% if (ctp_m.value) { %> — <%= ctp_m.value %><% } %></p>
+          </div>
+        <% } %>
+        <% if (ctp_f) { %>
+          <div class="contest-card">
+            <h4>Closest to Pin (Female)</h4>
+            <p><%= ctp_f.player_name %><% if (ctp_f.value) { %> — <%= ctp_f.value %><% } %></p>
+          </div>
+        <% } %>
+        <% if (ld_m) { %>
+          <div class="contest-card">
+            <h4>Longest Drive (Male)</h4>
+            <p><%= ld_m.player_name %><% if (ld_m.value) { %> — <%= ld_m.value %><% } %></p>
+          </div>
+        <% } %>
+        <% if (ld_f) { %>
+          <div class="contest-card">
+            <h4>Longest Drive (Female)</h4>
+            <p><%= ld_f.player_name %><% if (ld_f.value) { %> — <%= ld_f.value %><% } %></p>
+          </div>
+        <% } %>
+      </div>
+    <% } %>
+
+    <h2 class="section-title">Net Scores</h2>
+    <table class="leaderboard-table">
+      <thead>
+        <tr>
+          <th>Pos</th>
+          <th>Team</th>
+          <th>Front 9</th>
+          <th>Back 9</th>
+          <th>Gross</th>
+          <th>Strokes</th>
+          <th>Net</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% netLeaderboard.forEach((s, i) => { %>
+          <% const front = (s.hole_1||0)+(s.hole_2||0)+(s.hole_3||0)+(s.hole_4||0)+(s.hole_5||0)+(s.hole_6||0)+(s.hole_7||0)+(s.hole_8||0)+(s.hole_9||0); %>
+          <% const back = (s.hole_10||0)+(s.hole_11||0)+(s.hole_12||0)+(s.hole_13||0)+(s.hole_14||0)+(s.hole_15||0)+(s.hole_16||0)+(s.hole_17||0)+(s.hole_18||0); %>
+          <tr<% if (i === 0) { %> class="leader"<% } %>>
+            <td><%= i + 1 %></td>
+            <td><%= s.group_name %></td>
+            <td><%= front %></td>
+            <td><%= back %></td>
+            <td><%= s.gross_total %></td>
+            <td><%= s.team_strokes %></td>
+            <td><strong><%= s.net_total %></strong></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+
+    <h2 class="section-title" style="margin-top:2rem">Gross Scores</h2>
+    <table class="leaderboard-table">
+      <thead>
+        <tr>
+          <th>Pos</th>
+          <th>Team</th>
+          <th>Front 9</th>
+          <th>Back 9</th>
+          <th>Gross</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% grossLeaderboard.forEach((s, i) => { %>
+          <% const front = (s.hole_1||0)+(s.hole_2||0)+(s.hole_3||0)+(s.hole_4||0)+(s.hole_5||0)+(s.hole_6||0)+(s.hole_7||0)+(s.hole_8||0)+(s.hole_9||0); %>
+          <% const back = (s.hole_10||0)+(s.hole_11||0)+(s.hole_12||0)+(s.hole_13||0)+(s.hole_14||0)+(s.hole_15||0)+(s.hole_16||0)+(s.hole_17||0)+(s.hole_18||0); %>
+          <tr<% if (i === 0) { %> class="leader"<% } %>>
+            <td><%= i + 1 %></td>
+            <td><%= s.group_name %></td>
+            <td><%= front %></td>
+            <td><%= back %></td>
+            <td><strong><%= s.gross_total %></strong></td>
+          </tr>
+        <% }); %>
+      </tbody>
+    </table>
+
+    <p class="form-hint" style="margin-top:1rem">Ties broken by reverse scorecard comparison from the 18th hole.</p>
+  <% } %>
+<% } %>

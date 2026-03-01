@@ -1,0 +1,67 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Admin Dashboard</h1>
+  <a href="/admin/logout" class="btn btn-small">Logout</a>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin" class="active">Dashboard</a>
+  <a href="/admin/groups">Groups</a>
+  <a href="/admin/inbox">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/scores">Scores</a>
+</nav>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-number"><%= playerCount %></div>
+    <div class="stat-label">Players</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number"><%= groupCount %></div>
+    <div class="stat-label">Groups</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number">$<%= (donationTotal / 100).toFixed(0) %></div>
+    <div class="stat-label">Donations (<%= donationCount %>)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number"><%= emailStats.totalRecipients %></div>
+    <div class="stat-label">Emails Sent (<%= emailStats.total %> campaigns)</div>
+  </div>
+</div>
+
+<section class="admin-section">
+  <h2>Tournament Settings</h2>
+  <form method="POST" action="/admin/settings" class="form">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Tournament Name</label>
+        <input type="text" name="tournament_name" value="<%= settings.tournament_name || '' %>">
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="text" name="tournament_date" value="<%= settings.tournament_date || '' %>">
+      </div>
+      <div class="form-group">
+        <label>Course</label>
+        <input type="text" name="course_name" value="<%= settings.course_name || '' %>">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="registration_open" value="true" <%= settings.registration_open === 'true' ? 'checked' : '' %>>
+          Registration Open
+        </label>
+      </div>
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" name="results_published" value="true" <%= settings.results_published === 'true' ? 'checked' : '' %>>
+          Results Published
+        </label>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Save Settings</button>
+  </form>
+</section>

@@ -1,0 +1,62 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Inbox</h1>
+  <form method="POST" action="/admin/inbox/poll" class="form-inline">
+    <button type="submit" class="btn btn-small">Check for New Emails</button>
+  </form>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/groups">Groups</a>
+  <a href="/admin/inbox" class="active">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/scores">Scores</a>
+</nav>
+
+<% if (messages.length === 0) { %>
+  <div class="alert alert-info">No incoming emails. Configure IMAP in your .env to start polling.</div>
+<% } else { %>
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Status</th>
+        <th>From</th>
+        <th>Subject</th>
+        <th>Received</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (const msg of messages) { %>
+        <tr class="<%= msg.processed ? 'processed' : 'unprocessed' %>">
+          <td><span class="badge <%= msg.processed ? 'badge-complete' : 'badge-looking' %>"><%= msg.processed ? 'Done' : 'New' %></span></td>
+          <td><%= msg.from_addr %></td>
+          <td><%= msg.subject %></td>
+          <td><%= new Date(msg.received_at).toLocaleDateString() %></td>
+          <td class="actions">
+            <button class="btn btn-small" onclick="toggleBody(<%= msg.id %>)">View</button>
+            <% if (!msg.processed) { %>
+              <form method="POST" action="/admin/inbox/<%= msg.id %>/process" class="form-inline">
+                <button type="submit" class="btn btn-small">Mark Done</button>
+              </form>
+            <% } %>
+            <form method="POST" action="/admin/inbox/<%= msg.id %>/delete" class="form-inline" onsubmit="return confirm('Delete?')">
+              <button type="submit" class="btn btn-small btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        <tr id="body-<%= msg.id %>" class="email-body-row" style="display:none">
+          <td colspan="5"><pre class="email-body"><%= msg.body %></pre></td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+<% } %>
+
+<script>
+function toggleBody(id) {
+  const row = document.getElementById('body-' + id);
+  row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
+</script>

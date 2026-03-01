@@ -1,0 +1,26 @@
+<% layout('layout') -%>
+<section class="hero">
+  <h1><%= settings.tournament_name || 'The Claryville Open' %></h1>
+  <p class="hero-date"><%= settings.tournament_date || 'July 4, 2026' %></p>
+  <p class="hero-course"><%= settings.course_name || 'Claryville Golf Course' %></p>
+  <p class="hero-tagline">Annual Family Scramble Tournament</p>
+  <div class="hero-actions">
+    <a href="/register" class="btn btn-primary">Register Your Team</a>
+    <a href="/donate" class="btn btn-secondary">Donate to Fire Dept</a>
+  </div>
+</section>
+
+<section class="info-cards">
+  <div class="card">
+    <h3>Format</h3>
+    <p>4-person scramble. Grab your family and friends — all skill levels welcome.</p>
+  </div>
+  <div class="card">
+    <h3>Register</h3>
+    <p>Sign up as a group of 1-4 players. Solo players and incomplete teams can find partners on the Groups page.</p>
+  </div>
+  <div class="card">
+    <h3>Give Back</h3>
+    <p>All donations support the Claryville Fire Department. Every dollar counts.</p>
+  </div>
+</section>

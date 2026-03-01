@@ -1,0 +1,19 @@
+{
+  "name": "claryville-open",
+  "version": "1.0.0",
+  "description": "Claryville Open — Annual Family Golf Tournament",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "ejs": "^3.1.10",
+    "express": "^4.21.0",
+    "imap": "^0.8.19",
+    "mailparser": "^3.7.1",
+    "resend": "^4.0.0",
+    "stripe": "^17.4.0"
+  }
+}
