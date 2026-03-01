@@ -98,6 +98,54 @@ a { color: var(--green); }
 
 .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 
+.hero-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 0.3rem 1rem;
+  border-radius: 99px;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.hero-divider {
+  width: 60px;
+  height: 3px;
+  background: var(--gold);
+  margin: 1rem auto;
+  border-radius: 2px;
+}
+
+.hero-details {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+.hero-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-detail-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+
+.hero-detail-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.btn-lg { padding: 0.85rem 2rem; font-size: 1.05rem; }
+
 /* === Buttons === */
 .btn {
   display: inline-block;
@@ -132,6 +180,30 @@ a { color: var(--green); }
 }
 
 .card h3 { color: var(--green); margin-bottom: 0.5rem; font-size: 1.1rem; }
+
+.card-accent { border-top: 3px solid var(--gold); text-align: center; }
+.card-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+/* === Home sections === */
+.home-section { padding: 3rem 0; }
+
+.home-history {
+  text-align: center;
+  background: linear-gradient(135deg, var(--green) 0%, #1a3a0a 100%);
+  color: var(--white);
+  margin: 0 -1rem;
+  padding: 4rem 2rem;
+  border-radius: 0;
+}
+
+.home-history .section-title { color: var(--gold); font-family: Georgia, serif; font-size: 1.8rem; }
+.home-history .section-desc { max-width: 600px; margin: 0 auto 2rem; opacity: 0.9; }
+.home-history .section-desc a { color: var(--gold); }
+
+.history-stats { display: flex; gap: 3rem; justify-content: center; margin-bottom: 2rem; }
+.history-stat { display: flex; flex-direction: column; align-items: center; }
+.history-stat-number { font-size: 2.5rem; font-weight: 700; color: var(--gold); font-family: Georgia, serif; }
+.history-stat-label { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; }
 
 /* === Page header === */
 .page-header {
@@ -437,6 +509,108 @@ a { color: var(--green); }
 .hole-input { text-align: center; }
 .hole-input label { display: block; font-size: 0.7rem; color: var(--gray-500); margin-bottom: 0.2rem; }
 .hole-input input { width: 44px; padding: 0.35rem; text-align: center; border: 1px solid var(--gray-300); border-radius: 4px; font-size: 0.9rem; }
+
+/* === Trophy Plaque (Past Winners) === */
+.trophy-plaque {
+  background: linear-gradient(145deg, #5c3a1e 0%, #3d2510 50%, #5c3a1e 100%);
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  border: 3px solid #2a1a0a;
+  position: relative;
+  overflow: hidden;
+}
+
+.trophy-plaque::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px, transparent 80px,
+    rgba(0,0,0,0.03) 80px, rgba(0,0,0,0.03) 160px
+  );
+  pointer-events: none;
+}
+
+.plaque-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1rem 2rem;
+  background: linear-gradient(180deg, #d4a84c 0%, #b8922e 50%, #d4a84c 100%);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.plaque-title span {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #3d2510;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.3;
+}
+
+.plaque-title span:first-child { font-size: 1.3rem; }
+.plaque-title span:nth-child(2) { font-size: 1rem; }
+.plaque-title span:last-child { font-size: 0.9rem; }
+
+.plaque-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.plaque-plate {
+  background: linear-gradient(180deg, #d4a84c 0%, #c49a3a 30%, #b8922e 70%, #d4a84c 100%);
+  border-radius: 3px;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+  position: relative;
+  min-height: 70px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.plaque-plate::before,
+.plaque-plate::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: radial-gradient(circle, #e8c060 30%, #a07828 70%);
+  border-radius: 50%;
+  top: 6px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+.plaque-plate::before { left: 8px; }
+.plaque-plate::after { right: 8px; }
+
+.plaque-year {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #3d2510;
+  margin-bottom: 0.2rem;
+}
+
+.plaque-names {
+  font-size: 0.8rem;
+  color: #4a2e14;
+  line-height: 1.3;
+  font-weight: 500;
+}
 
 /* === Tee box dots === */
 .tee-dot {

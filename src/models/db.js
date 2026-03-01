@@ -96,9 +96,9 @@ if (settingsCount.c === 0) {
   const insert = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
   const defaults = [
     ['tournament_name', 'The Claryville Open'],
-    ['tournament_year', '2025'],
-    ['tournament_date', 'July 4, 2025'],
-    ['course_name', 'Claryville Golf Course'],
+    ['tournament_year', '2026'],
+    ['tournament_date', 'Friday, July 3rd, 2026'],
+    ['course_name', 'Lochmor Golf Club'],
     ['results_published', 'false'],
     ['registration_open', 'true'],
   ];

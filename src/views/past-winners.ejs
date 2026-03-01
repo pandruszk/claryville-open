@@ -1,0 +1,56 @@
+<% layout('layout') -%>
+<div class="page-header">
+  <h1>Past Winners</h1>
+  <p>Claryville Open — 4 Person Best Ball</p>
+</div>
+
+<div class="trophy-plaque">
+  <div class="plaque-title">
+    <span>Claryville Open</span>
+    <span>Tournament</span>
+    <span>4 Person Best Ball</span>
+  </div>
+
+  <div class="plaque-grid">
+    <% const winners = [
+      { year: 1993, team: 'Kelly & Gloria, Jim & Lodge, John Jr. & Sue' },
+      { year: 1995, team: 'Wellingtons, John Jr. & Sue' },
+      { year: 1996, team: 'Victor, Scott, Ken' },
+      { year: 1997, team: 'Wellington, Andy & Dave, Shawn & Claire' },
+      { year: 1998, team: 'Mary & Dave, Jamie & Fred' },
+      { year: 1999, team: 'Matt Quinn, John & Mary, Brad McCain' },
+      { year: 2000, team: 'John & Mary, Carl Quinn' },
+      { year: 2001, team: 'Brad Quinn, Mitch Marcotte' },
+      { year: 2002, team: 'Deborah, Redbush, Karl, Vinco French' },
+      { year: 2003, team: 'Wellingtons, Brimingtons' },
+      { year: 2004, team: 'Quinnebush, De John M., Kevin Goodman' },
+      { year: 2004, team: 'Wellington D. & Scott Kenyon, John Jr.', note: 'Best Ball' },
+      { year: 2005, team: 'David Jones, Peter Rooney & Molly' },
+      { year: 2006, team: 'Bill, Jenny & Jake Strenkowski' },
+      { year: 2007, team: 'Ian Gunn, Mitch, Andy Purtell' },
+      { year: 2008, team: 'Kelly & Mary Jones, Peter & Danielle Andruszkiewicz' },
+      { year: 2009, team: 'Jon Hilyer, Hugo Campbell, Jennifer Burns' },
+      { year: 2010, team: 'Peter & Danielle Andruszkiewicz, Vinny, Frank' },
+      { year: 2011, team: 'Gordy & Jack Jones, John Schulock, John Mascolo' },
+      { year: 2013, team: 'Mary & Kelly Jones, Danielle & Peter Andruszkiewicz' },
+      { year: 2014, team: 'Steve Haines, Wood Jones, Tim Wood' },
+      { year: 2015, team: 'Jones, Shaffer, James Shaffer, Shaffer' },
+      { year: 2016, team: 'Eric Lacrosse, James Shaffer, Kit Stubbs' },
+      { year: 2018, team: 'Ed Schafer, Ian, Kit Stubbs' },
+      { year: 2022, team: 'Dana Jones, Gordy & Wood Jones, Lisa & Little Pete, Trecia' },
+      { year: 2024, team: 'Thom, Reeves, Grace, Danielle & Big Pete A.' },
+      { year: 2025, team: 'Little Pete A., Dan, Pete A., Big Pete A.' },
+    ]; %>
+
+    <% for (const w of winners) { %>
+      <div class="plaque-plate">
+        <div class="plaque-year"><%= w.year %></div>
+        <div class="plaque-names"><%= w.team %></div>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<p class="form-hint" style="margin-top:2rem; text-align:center;">
+  Data from the original trophy plaque. Some names may be abbreviated.
+</p>

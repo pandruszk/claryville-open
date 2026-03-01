@@ -27,6 +27,12 @@ router.get('/rules', (req, res) => {
   res.render('rules', { settings });
 });
 
+// Past Winners
+router.get('/past-winners', (req, res) => {
+  const settings = getSettings();
+  res.render('past-winners', { settings });
+});
+
 // Register page
 router.get('/register', (req, res) => {
   const settings = getSettings();
