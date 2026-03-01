@@ -1,70 +1,95 @@
 <% layout('layout') -%>
-<section class="hero">
-  <div class="hero-badge">Est. 1993</div>
-  <h1><%= settings.tournament_name || 'The Claryville Open' %></h1>
-  <div class="hero-divider"></div>
-  <p class="hero-tagline">Annual Family Scramble Tournament</p>
-  <div class="hero-details">
-    <div class="hero-detail">
-      <span class="hero-detail-label">When</span>
-      <span class="hero-detail-value"><%= settings.tournament_date || 'Friday, July 3rd, 2026' %></span>
-    </div>
-    <div class="hero-detail">
-      <span class="hero-detail-label">Where</span>
-      <span class="hero-detail-value"><%= settings.course_name || 'Lochmor Golf Club' %></span>
-    </div>
-    <div class="hero-detail">
-      <span class="hero-detail-label">Format</span>
-      <span class="hero-detail-value">4-Person Best Ball Scramble</span>
+<section class="hero-split">
+  <div class="hero-content">
+    <div class="hero-badge">Est. 1993 &middot; 4-Person Best Ball Scramble</div>
+    <h1>The 2026<br>Claryville Open</h1>
+    <div class="hero-accent"></div>
+    <p class="hero-sub">Join us at <strong>Lochmor Golf Club</strong> for the annual family scramble tournament. All skill levels welcome — grab your team and get on the course.</p>
+    <div class="hero-ctas">
+      <a href="/register" class="btn btn-accent">Register Now</a>
+      <a href="/rules" class="btn btn-outline">View Rules</a>
     </div>
   </div>
-  <div class="hero-actions">
-    <a href="/register" class="btn btn-primary btn-lg">Register Your Team</a>
-    <a href="/rules" class="btn btn-secondary">View Rules</a>
+  <div class="hero-image">
+    <div class="hero-image-overlay"></div>
   </div>
 </section>
 
-<section class="home-section">
-  <div class="info-cards">
-    <div class="card card-accent">
-      <div class="card-icon">&#9971;</div>
-      <h3>Scramble Format</h3>
-      <p>4-person best ball. Grab your family and friends — all skill levels welcome. Custom stroke rules keep it fair and fun.</p>
-    </div>
-    <div class="card card-accent">
-      <div class="card-icon">&#9997;</div>
-      <h3>Sign Up</h3>
-      <p>Register as a group of 1-4 players. Solo players and incomplete teams can find partners on the <a href="/groups">Groups</a> page.</p>
-    </div>
-    <div class="card card-accent">
-      <div class="card-icon">&#127942;</div>
-      <h3>Prizes</h3>
-      <p>Low net, low gross, high net, closest to pin, and longest drive. Get your name on the plaque!</p>
-    </div>
-    <div class="card card-accent">
-      <div class="card-icon">&#128293;</div>
-      <h3>Give Back</h3>
-      <p>All donations support the Claryville Fire Department. <a href="/donate">Donate here</a> — every dollar counts.</p>
+<section class="feature-strip">
+  <div class="feature-strip-inner">
+    <a href="/register" class="feature-item">
+      <div class="feature-bar"></div>
+      <h3>Registration Open</h3>
+      <p>Sign up your foursome or register solo</p>
+      <span class="feature-link">Register &rarr;</span>
+    </a>
+    <a href="/groups" class="feature-item">
+      <div class="feature-bar"></div>
+      <h3>View Groups</h3>
+      <p>See registered teams and find a group</p>
+      <span class="feature-link">View &rarr;</span>
+    </a>
+    <a href="/past-winners" class="feature-item">
+      <div class="feature-bar"></div>
+      <h3>30+ Years of Champions</h3>
+      <p>See every winner since 1993</p>
+      <span class="feature-link">Past Winners &rarr;</span>
+    </a>
+    <a href="/donate" class="feature-item">
+      <div class="feature-bar"></div>
+      <h3>Support the Fire Dept.</h3>
+      <p>All donations go to Claryville FD</p>
+      <span class="feature-link">Donate &rarr;</span>
+    </a>
+  </div>
+</section>
+
+<section class="content-section">
+  <div class="content-inner">
+    <div class="info-grid">
+      <div class="info-block">
+        <h2>The Format</h2>
+        <div class="info-accent"></div>
+        <p>4-person best ball scramble. Each player hits from the best previous shot. Custom stroke rules based on age, gender, experience, and more keep the competition fair for everyone.</p>
+        <p>Teams of 3 are welcome — you'll get 4 attempts at each shot with a rotating extra.</p>
+        <a href="/rules" class="text-link">Full rules &rarr;</a>
+      </div>
+      <div class="info-block">
+        <h2>The Prizes</h2>
+        <div class="info-accent"></div>
+        <ul class="prize-list">
+          <li>Low Net Team Score</li>
+          <li>Low Gross Team Score</li>
+          <li>High Net Team Score</li>
+          <li>Closest to Pin &mdash; Male &amp; Female</li>
+          <li>Longest Drive &mdash; Male &amp; Female</li>
+        </ul>
+        <p>Ties broken by reverse scorecard from the 18th hole.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="home-section home-history">
-  <h2 class="section-title">30+ Years of Tradition</h2>
-  <p class="section-desc">Since 1993, the Claryville Open has brought together family and friends for a day of golf, laughs, and friendly competition. Check out the <a href="/past-winners">past winners</a> engraved on the trophy.</p>
-  <div class="history-stats">
-    <div class="history-stat">
-      <span class="history-stat-number">30+</span>
-      <span class="history-stat-label">Years</span>
+<section class="history-banner">
+  <div class="history-inner">
+    <div class="history-content">
+      <h2>A Family Tradition Since 1993</h2>
+      <p>What started as a backyard tournament has grown into a beloved annual tradition. Generations of families have competed, laughed, and made memories on the course. Check out the trophy plaque and see who's taken home the title.</p>
+      <a href="/past-winners" class="btn btn-accent">View Past Winners</a>
     </div>
-    <div class="history-stat">
-      <span class="history-stat-number">100s</span>
-      <span class="history-stat-label">Players</span>
-    </div>
-    <div class="history-stat">
-      <span class="history-stat-number">1</span>
-      <span class="history-stat-label">Trophy</span>
+    <div class="history-stats">
+      <div class="history-stat">
+        <span class="history-stat-number">30+</span>
+        <span class="history-stat-label">Years</span>
+      </div>
+      <div class="history-stat">
+        <span class="history-stat-number">100s</span>
+        <span class="history-stat-label">Players</span>
+      </div>
+      <div class="history-stat">
+        <span class="history-stat-number">1</span>
+        <span class="history-stat-label">Trophy</span>
+      </div>
     </div>
   </div>
-  <a href="/past-winners" class="btn btn-primary">View Past Winners</a>
 </section>
