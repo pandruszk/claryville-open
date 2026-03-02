@@ -244,8 +244,22 @@ router.get('/questions', (req, res) => {
 
 // Questions chatbot API
 router.post('/api/ask', express.json(), async (req, res) => {
-  const question = (req.body.question || '').trim();
-  if (!question) return res.json({ answer: 'You gotta actually ask something.' });
+  let chatMessages = req.body.messages;
+  if (!chatMessages || !Array.isArray(chatMessages) || chatMessages.length === 0) {
+    return res.json({ answer: 'You gotta actually ask something.' });
+  }
+
+  // Limit history to last 20 messages to keep costs down
+  if (chatMessages.length > 20) chatMessages = chatMessages.slice(-20);
+
+  // Sanitize — only allow user/assistant roles, text content
+  chatMessages = chatMessages
+    .filter(m => m.role === 'user' || m.role === 'assistant')
+    .map(m => ({ role: m.role, content: String(m.content).slice(0, 1000) }));
+
+  if (chatMessages.length === 0 || chatMessages[chatMessages.length - 1].role !== 'user') {
+    return res.json({ answer: 'You gotta actually ask something.' });
+  }
 
   try {
     const Anthropic = require('@anthropic-ai/sdk').default;
@@ -256,19 +270,32 @@ router.post('/api/ask', express.json(), async (req, res) => {
     const systemPrompt = AutoReplyService.buildTournamentContext() + `
 
 IMPORTANT INSTRUCTIONS FOR ANSWERING:
-- You are the Claryville Open's sarcastic but helpful AI caddy.
-- Keep answers SHORT (2-4 sentences max).
-- Be funny, a little snarky, but always give the actual answer.
+- You are the Claryville Open's AI caddy. Friendly, a little cheeky, but always helpful.
+- Keep answers concise (2-5 sentences usually).
+- Be conversational and fun but always give the real answer.
 - The tournament is a family affair — keep it PG-13.
-- If you truly don't know the answer or it's not about the tournament, say something like: "That's above my pay grade. Shoot an email to rulescommittee@claryvilleopen.com and the Rules Committee will sort you out."
+- If you truly don't know the answer or it's not about the tournament, say: "That's above my pay grade. Shoot an email to rulescommittee@claryvilleopen.com and the Rules Committee will sort you out."
 - Never make up rules or info that isn't in your context.
-- Don't use emojis.`;
+- Don't use emojis.
+
+STROKE CALCULATION — VERY IMPORTANT:
+When someone asks about strokes, handicaps, or how many strokes they get, you MUST walk them through it by asking specific questions one at a time. Ask:
+1. How many players on the team? (and their names if they want)
+2. For EACH player ask: age, gender, and then the qualifying factors:
+   - Ever played on a golf course before?
+   - Current or former U.S. military?
+   - Heart attack, stroke, or brain tumor survivor?
+   - Post-partum (within 1 year)?
+   - Played high school golf (and are under 55)?
+   - Played college golf (and are under 55)?
+   - Played PGA/LPGA tour?
+Ask these naturally in conversation, not as a big dump. Once you have the info for all players, calculate the total strokes step by step showing the math, and remind them of the Sandbagger Rule (max -10 per team). Also tell each player their tee box assignment.`;
 
     const msg = await client.messages.create({
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 300,
+      max_tokens: 500,
       system: systemPrompt,
-      messages: [{ role: 'user', content: question }],
+      messages: chatMessages,
     });
 
     const answer = msg.content[0]?.text || "Something went sideways. Email rulescommittee@claryvilleopen.com instead.";

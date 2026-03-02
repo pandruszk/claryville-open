@@ -13,7 +13,7 @@
   <div class="chat-container">
     <div class="chat-messages" id="chat-messages">
       <div class="chat-message bot">
-        <div class="chat-bubble">What do you want to know? And before you ask — no, you can't get extra strokes for being hungover.</div>
+        <div class="chat-bubble">Go ahead, ask me something about the tournament. Rules, strokes, tee boxes, registration — I've got it all rattling around in here.</div>
       </div>
     </div>
     <form class="chat-input-form" id="chat-form">
@@ -26,41 +26,45 @@
 <script>
 const form = document.getElementById('chat-form');
 const input = document.getElementById('chat-input');
-const messages = document.getElementById('chat-messages');
+const messagesEl = document.getElementById('chat-messages');
 const sendBtn = document.getElementById('chat-send');
+const history = [];
+
+function esc(s) { return s.replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const question = input.value.trim();
   if (!question) return;
 
-  // Add user message
+  history.push({ role: 'user', content: question });
+
   const userDiv = document.createElement('div');
   userDiv.className = 'chat-message user';
-  userDiv.innerHTML = '<div class="chat-bubble">' + question.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
-  messages.appendChild(userDiv);
+  userDiv.innerHTML = '<div class="chat-bubble">' + esc(question) + '</div>';
+  messagesEl.appendChild(userDiv);
 
   input.value = '';
   input.disabled = true;
   sendBtn.disabled = true;
   sendBtn.textContent = '...';
-  messages.scrollTop = messages.scrollHeight;
+  messagesEl.scrollTop = messagesEl.scrollHeight;
 
-  // Add thinking indicator
   const thinkDiv = document.createElement('div');
   thinkDiv.className = 'chat-message bot';
   thinkDiv.innerHTML = '<div class="chat-bubble chat-thinking">Thinking...</div>';
-  messages.appendChild(thinkDiv);
-  messages.scrollTop = messages.scrollHeight;
+  messagesEl.appendChild(thinkDiv);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
 
   try {
     const res = await fetch('/api/ask', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ messages: history }),
     });
     const data = await res.json();
-    thinkDiv.innerHTML = '<div class="chat-bubble">' + data.answer.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') + '</div>';
+    history.push({ role: 'assistant', content: data.answer });
+    thinkDiv.innerHTML = '<div class="chat-bubble">' + esc(data.answer).replace(/\n/g, '<br>') + '</div>';
   } catch (err) {
     thinkDiv.innerHTML = '<div class="chat-bubble">Something broke. Email <a href="mailto:rulescommittee@claryvilleopen.com">rulescommittee@claryvilleopen.com</a> instead.</div>';
   }
@@ -69,6 +73,6 @@ form.addEventListener('submit', async (e) => {
   sendBtn.disabled = false;
   sendBtn.textContent = 'Send';
   input.focus();
-  messages.scrollTop = messages.scrollHeight;
+  messagesEl.scrollTop = messagesEl.scrollHeight;
 });
 </script>
