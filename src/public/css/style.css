@@ -67,8 +67,8 @@ img { max-width: 100%; }
 }
 
 .brand-logo {
-  width: 38px;
-  height: 38px;
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   background: var(--white);
   object-fit: contain;
