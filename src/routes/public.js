@@ -115,6 +115,19 @@ router.post('/register', express.urlencoded({ extended: true }), async (req, res
   // Update group status
   Groups.updateStatus(groupId);
 
+  // Add players to distribution list
+  for (const p of players) {
+    if (p.email) {
+      const nameParts = p.name.trim().split(/\s+/);
+      const firstName = nameParts[0] || null;
+      const lastName = nameParts.slice(1).join(' ') || null;
+      try {
+        db.prepare('INSERT OR IGNORE INTO distribution_list (first_name, last_name, email) VALUES (?, ?, ?)')
+          .run(firstName, lastName, p.email);
+      } catch (err) { /* duplicate email, ignore */ }
+    }
+  }
+
   // Send confirmation emails
   const group = Groups.getById(groupId);
   for (const email of emails) {
@@ -215,6 +228,16 @@ router.post('/gallery/upload', upload.single('file'), (req, res) => {
     req.body.uploaded_by || null
   );
   res.redirect('/gallery?success=1');
+});
+
+// Footer email signup
+router.post('/subscribe', express.urlencoded({ extended: true }), (req, res) => {
+  const email = req.body.email?.trim();
+  if (!email) return res.redirect(req.get('referer') || '/');
+  try {
+    db.prepare('INSERT OR IGNORE INTO distribution_list (email) VALUES (?)').run(email);
+  } catch (err) { /* duplicate, ignore */ }
+  res.redirect((req.get('referer') || '/') + (req.get('referer')?.includes('?') ? '&' : '?') + 'subscribed=1');
 });
 
 module.exports = router;

@@ -51,6 +51,13 @@
         <a href="/donate">Donate</a>
         <a href="/past-winners">Past Winners</a>
       </div>
+      <div class="footer-signup">
+        <p class="footer-signup-label">Stay in the loop</p>
+        <form method="POST" action="/subscribe" class="footer-signup-form">
+          <input type="email" name="email" placeholder="Your email address" required>
+          <button type="submit" class="btn btn-accent btn-small">Sign Up</button>
+        </form>
+      </div>
       <div class="footer-copy">&copy; <%= new Date().getFullYear() %> The Claryville Open. All proceeds benefit the Claryville Fire Department.</div>
     </div>
   </footer>
