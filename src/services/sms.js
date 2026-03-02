@@ -74,13 +74,23 @@ async function sendReply(to, text) {
     console.error('[SMS] Telnyx not configured');
     return;
   }
-  const Telnyx = require('telnyx');
-  const telnyx = new Telnyx(process.env.TELNYX_API_KEY);
-  return telnyx.messages.create({
-    from: process.env.TELNYX_PHONE_NUMBER,
-    to,
-    text,
+  const resp = await fetch('https://api.telnyx.com/v2/messages', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.TELNYX_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: process.env.TELNYX_PHONE_NUMBER,
+      to,
+      text,
+    }),
   });
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new Error(`Telnyx send failed (${resp.status}): ${err}`);
+  }
+  return resp.json();
 }
 
 module.exports = { handleIncoming, sendReply };
