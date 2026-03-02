@@ -231,6 +231,26 @@ router.post('/inbox/:id/draft/regenerate', async (req, res) => {
   res.redirect(`/admin/inbox/${req.params.id}/draft`);
 });
 
+// Manual reply (admin-composed)
+router.post('/inbox/:id/reply', express.urlencoded({ extended: true }), async (req, res) => {
+  const message = db.prepare('SELECT * FROM inbox_messages WHERE id = ?').get(req.params.id);
+  if (!message) return res.redirect('/admin/inbox');
+
+  try {
+    const { reply_subject, reply_body } = req.body;
+    const emailMatch = message.from_addr.match(/<([^>]+)>/);
+    const toAddr = emailMatch ? emailMatch[1] : message.from_addr;
+    await EmailService.sendReply(toAddr, reply_subject, reply_body);
+    InboxService.markProcessed(message.id);
+    // Dismiss AI draft if one exists
+    const draft = AutoReplyService.getDraftByMessageId(message.id);
+    if (draft && draft.status === 'pending') AutoReplyService.markDismissed(draft.id);
+  } catch (err) {
+    console.error('[Admin] Error sending manual reply:', err.message);
+  }
+  res.redirect('/admin/inbox');
+});
+
 // Rules suggestions
 router.get('/rules-suggestions', (req, res) => {
   const suggestions = AutoReplyService.getRuleSuggestions();

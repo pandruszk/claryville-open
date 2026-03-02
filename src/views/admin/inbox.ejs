@@ -61,6 +61,7 @@
           </td>
           <td class="actions">
             <button class="btn btn-small" onclick="toggleBody(<%= msg.id %>)">View</button>
+            <a href="/admin/inbox/<%= msg.id %>/draft" class="btn btn-small">Reply</a>
             <% if (!msg.processed) { %>
               <form method="POST" action="/admin/inbox/<%= msg.id %>/process" class="form-inline">
                 <button type="submit" class="btn btn-small">Mark Done</button>

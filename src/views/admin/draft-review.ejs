@@ -98,4 +98,20 @@
     <% } %>
 
   <% } %>
+
+  <!-- Manual reply form -->
+  <section class="admin-section">
+    <h2>Write Your Own Reply</h2>
+    <form method="POST" action="/admin/inbox/<%= message.id %>/reply">
+      <div class="form-group">
+        <label>Subject</label>
+        <input type="text" name="reply_subject" value="Re: <%= message.subject %>" required>
+      </div>
+      <div class="form-group">
+        <label>Reply Body (HTML)</label>
+        <textarea name="reply_body" rows="10" class="draft-editor" required placeholder="Write your reply here..."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" onclick="return confirm('Send this reply?')">Send Reply</button>
+    </form>
+  </section>
 </div>
