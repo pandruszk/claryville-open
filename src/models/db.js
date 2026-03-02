@@ -136,6 +136,13 @@ db.exec(`
     team_display TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS past_winner_players (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    past_winner_id INTEGER NOT NULL REFERENCES past_winners(id) ON DELETE CASCADE,
+    display_name TEXT NOT NULL,
+    contact_id INTEGER REFERENCES distribution_list(id) ON DELETE SET NULL
+  );
 `);
 
 // Seed default settings if empty
@@ -269,6 +276,166 @@ if (winnersCount.c === 0) {
     for (const [year, team] of winners) insertWinner.run(year, team);
   });
   seedWinners();
+}
+
+// Seed past winner players if empty but winners exist
+const pwpCount = db.prepare('SELECT COUNT(*) as c FROM past_winner_players').get();
+if (pwpCount.c === 0 && winnersCount.c > 0 || pwpCount.c === 0 && db.prepare('SELECT COUNT(*) as c FROM past_winners').get().c > 0) {
+  const getWinner = db.prepare('SELECT id FROM past_winners WHERE year = ? AND team_display = ?');
+  const findContact = db.prepare(
+    'SELECT id FROM distribution_list WHERE lower(first_name) = lower(?) AND lower(last_name) = lower(?) LIMIT 1'
+  );
+  const insertPWP = db.prepare(
+    'INSERT INTO past_winner_players (past_winner_id, display_name, contact_id) VALUES (?, ?, ?)'
+  );
+
+  // [year, team_display, [[display_name, lookup_first, lookup_last], ...]]
+  const data = [
+    [1993, 'Mary & Kelly Jones, Dani Jones, Gordy "3 Wood" Jones', [
+      ['Mary Jones', null, null],
+      ['Kelly Jones', 'Kelly', 'Jones'],
+      ['Dani Jones', null, null],
+      ['Gordy "3 Wood" Jones', 'Gordy', 'Jones'],
+    ]],
+    [1995, 'Molly & Derek', [
+      ['Molly', 'Molly', 'Andruszkiewicz Frome'],
+      ['Derek', 'Derek', 'Frome'],
+    ]],
+    [1996, 'Mary & Kelly Jones, Danielle & Peter Andruszkiewicz', [
+      ['Mary Jones', null, null],
+      ['Kelly Jones', 'Kelly', 'Jones'],
+      ['Danielle Andruszkiewicz', 'Danielle', 'Andruszkiewicz'],
+      ['Peter Andruszkiewicz', 'Peter', 'Andruszkiewicz'],
+    ]],
+    [1997, 'Dani Jones, Steven Hafner, Judy Hafner, Sopp', [
+      ['Dani Jones', null, null],
+      ['Steven Hafner', null, null],
+      ['Judy Hafner', 'Judy', 'Hafner'],
+      ['Jon Sopp', 'John', 'Sopp'],
+    ]],
+    [1998, 'Lisa G. & Little Pete', [
+      ['Lisa G.', 'Lisa', 'Guerrero'],
+      ['Little Pete', 'Pete', 'Andruszkiewicz'],
+    ]],
+    [1999, 'Matt Quinn, Dan Quinn, Brian Macchi & Dave', [
+      ['Matt Quinn', 'Matt', 'Quinn'],
+      ['Dan Quinn', 'Dan', 'Quinn'],
+      ['Brian Macchi', null, null],
+      ['Dave', null, null],
+    ]],
+    [2000, 'Margaret, Jim Schiffer', [
+      ['Margaret', null, null],
+      ['Jim Schiffer', null, null],
+    ]],
+    [2001, 'Dan Quinn, Brad', [
+      ['Dan Quinn', 'Dan', 'Quinn'],
+      ['Brad', 'Brad', 'Jones'],
+    ]],
+    [2002, '& Deborah, Quackenbush, Karl, Vince Freeh', [
+      ['Deborah', null, null],
+      ['Quackenbush', 'Bob', 'Quackenbush'],
+      ['Karl', null, null],
+      ['Vince Freeh', 'Vince', 'Freeh'],
+    ]],
+    [2003, "Wellington's — Scott, Brian, Ken, John Jr.", [
+      ['Scott Wellington', 'Scott', 'Wellington'],
+      ['Brian', null, null],
+      ['Ken', null, null],
+      ['John Jr.', null, null],
+    ]],
+    [2004, 'Quackenbush, Kevin Cloonan', [
+      ['Quackenbush', 'Bob', 'Quackenbush'],
+      ['Kevin Cloonan', null, null],
+    ]],
+    [2004, 'Wellington — Scott, Kenny, John Jr.', [
+      ['Scott Wellington', 'Scott', 'Wellington'],
+      ['Kenny', null, null],
+      ['John Jr.', null, null],
+    ]],
+    [2005, 'Gordy Jones, R. Robbins, Peter Andruszkiewicz', [
+      ['Gordy Jones', 'Gordy', 'Jones'],
+      ['R. Robbins', null, null],
+      ['Peter Andruszkiewicz', 'Peter', 'Andruszkiewicz'],
+    ]],
+    [2006, 'Duke, Kenny & John Wellington, Dave Springman', [
+      ['Duke', null, null],
+      ['Kenny Wellington', null, null],
+      ['John Wellington', null, null],
+      ['Dave Springman', null, null],
+    ]],
+    [2007, 'Dan Quinn, Mitch Marcotte, Mike Zagars, Andy Purtell', [
+      ['Dan Quinn', 'Dan', 'Quinn'],
+      ['Mitch Marcotte', null, null],
+      ['Mike Zagars', null, null],
+      ['Andy Purtell', null, null],
+    ]],
+    [2008, 'Kelly & Mary Jones, Peter & Danielle Andruszkiewicz', [
+      ['Kelly Jones', 'Kelly', 'Jones'],
+      ['Mary Jones', null, null],
+      ['Peter Andruszkiewicz', 'Peter', 'Andruszkiewicz'],
+      ['Danielle Andruszkiewicz', 'Danielle', 'Andruszkiewicz'],
+    ]],
+    [2009, 'Judy Hafner, Jon Sopp, Dino Campbell, Jennifer Grimes', [
+      ['Judy Hafner', 'Judy', 'Hafner'],
+      ['Jon Sopp', 'John', 'Sopp'],
+      ['Dino Campbell', null, null],
+      ['Jennifer Grimes', null, null],
+    ]],
+    [2010, 'Dan Quinn, Mary, Jon, R. & Danielle Andruszkiewicz', [
+      ['Dan Quinn', 'Dan', 'Quinn'],
+      ['Mary', null, null],
+      ['Jon', null, null],
+      ['Danielle Andruszkiewicz', 'Danielle', 'Andruszkiewicz'],
+    ]],
+    [2011, 'John Scurlock, Anthony Mascolo', [
+      ['John Scurlock', null, null],
+      ['Anthony Mascolo', null, null],
+    ]],
+    [2013, 'Mary & Kelly Jones, Danielle & Peter Andruszkiewicz', [
+      ['Mary Jones', null, null],
+      ['Kelly Jones', 'Kelly', 'Jones'],
+      ['Danielle Andruszkiewicz', 'Danielle', 'Andruszkiewicz'],
+      ['Peter Andruszkiewicz', 'Peter', 'Andruszkiewicz'],
+    ]],
+    [2015, 'Peter Andruszkiewicz, Lisa Guerrero, John and Kate Scurlock', [
+      ['Peter Andruszkiewicz', 'Peter', 'Andruszkiewicz'],
+      ['Lisa Guerrero', 'Lisa', 'Guerrero'],
+      ['John Scurlock', null, null],
+      ['Kate Scurlock', null, null],
+    ]],
+    [2022, 'Gordy "3 Wood" Jones, Lisa G. & Little Pete', [
+      ['Gordy "3 Wood" Jones', 'Gordy', 'Jones'],
+      ['Lisa G.', 'Lisa', 'Guerrero'],
+      ['Little Pete', 'Pete', 'Andruszkiewicz'],
+    ]],
+    [2024, 'Thom Reeves, Grace, Danielle, and Big Pete A.', [
+      ['Thom Reeves', 'Thom', 'Reeves'],
+      ['Grace Andruszkiewicz', 'Grace', 'Andruszkiewicz'],
+      ['Danielle Andruszkiewicz', 'Danielle', 'Andruszkiewicz'],
+      ['Peter Andruszkiewicz', 'Peter', 'Andruszkiewicz'],
+    ]],
+    [2025, 'Little Pete A., Danimal A., Big Pete A.', [
+      ['Little Pete A.', 'Pete', 'Andruszkiewicz'],
+      ['Danielle Andruszkiewicz', 'Danielle', 'Andruszkiewicz'],
+      ['Peter Andruszkiewicz', 'Peter', 'Andruszkiewicz'],
+    ]],
+  ];
+
+  const seedPWP = db.transaction(() => {
+    for (const [year, team, players] of data) {
+      const winner = getWinner.get(year, team);
+      if (!winner) continue;
+      for (const [name, first, last] of players) {
+        let contactId = null;
+        if (first && last) {
+          const contact = findContact.get(first, last);
+          if (contact) contactId = contact.id;
+        }
+        insertPWP.run(winner.id, name, contactId);
+      }
+    }
+  });
+  seedPWP();
 }
 
 module.exports = db;

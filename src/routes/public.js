@@ -51,7 +51,11 @@ router.get('/rules', (req, res) => {
 // Past Winners
 router.get('/past-winners', (req, res) => {
   const settings = getSettings();
-  const winners = db.prepare('SELECT year, team_display FROM past_winners ORDER BY year ASC, id ASC').all();
+  const winners = db.prepare('SELECT * FROM past_winners ORDER BY year ASC, id ASC').all();
+  for (const w of winners) {
+    const players = db.prepare('SELECT display_name FROM past_winner_players WHERE past_winner_id = ? ORDER BY id').all(w.id);
+    w.display = players.length > 0 ? players.map(p => p.display_name).join(', ') : w.team_display;
+  }
   res.render('past-winners', { settings, winners, title: 'Past Winners' });
 });
 

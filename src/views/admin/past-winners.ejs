@@ -16,79 +16,140 @@
 </nav>
 
 <section class="admin-section">
-  <h2>Add New Winner</h2>
-  <form method="POST" action="/admin/past-winners/add" class="form" style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap">
-    <div class="form-group" style="width:5rem">
+  <h2>Add New Year</h2>
+  <form method="POST" action="/admin/past-winners/add" class="form">
+    <div class="form-group" style="width:5rem;margin-bottom:0.75rem">
       <label>Year</label>
       <input type="number" name="year" min="1990" max="2099" required>
     </div>
-    <div class="form-group" style="flex:1;min-width:200px">
-      <label>Team / Players</label>
-      <input type="text" name="team_display" placeholder="e.g. Dan Quinn, Kelly Jones, Lisa G." required>
+    <label style="font-weight:600;font-size:0.85rem">Players</label>
+    <div id="new-players">
+      <div class="player-edit-row">
+        <input type="text" name="display_name" placeholder="Display name (e.g. Little Pete)" required>
+        <select name="contact_id">
+          <option value="">-- Link contact --</option>
+          <% for (const c of contacts) { %>
+            <option value="<%= c.id %>"><%= c.first_name || '' %> <%= c.last_name || '' %></option>
+          <% } %>
+        </select>
+        <button type="button" class="btn btn-small btn-danger" onclick="this.closest('.player-edit-row').remove()">x</button>
+      </div>
     </div>
-    <button type="submit" class="btn btn-primary">Add Winner</button>
+    <button type="button" class="btn btn-small" onclick="addRow('new-players')" style="margin-top:0.35rem">+ Add Player</button>
+    <div style="margin-top:0.75rem">
+      <button type="submit" class="btn btn-primary">Add Winner</button>
+    </div>
   </form>
 </section>
 
 <section class="admin-section">
   <h2>All Past Winners (<%= winners.length %>)</h2>
-  <% if (winners.length === 0) { %>
-    <div class="alert alert-info">No past winners recorded yet.</div>
-  <% } else { %>
-    <table class="admin-table">
-      <thead>
-        <tr>
-          <th style="width:5rem">Year</th>
-          <th>Team</th>
-          <th>Matched Contacts</th>
-          <th style="width:10rem">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% for (const w of winners) { %>
-          <tr>
-            <td><strong><%= w.year %></strong></td>
-            <td>
-              <span class="winner-team-text" id="team-text-<%= w.id %>"><%= w.team_display %></span>
-              <form method="POST" action="/admin/past-winners/<%= w.id %>/edit" class="winner-edit-form" id="edit-form-<%= w.id %>" style="display:none;gap:0.5rem;align-items:center">
-                <input type="number" name="year" value="<%= w.year %>" style="width:5rem" min="1990" max="2099">
-                <input type="text" name="team_display" value="<%= w.team_display %>" style="flex:1">
-                <button type="submit" class="btn btn-small btn-primary">Save</button>
-                <button type="button" class="btn btn-small" onclick="cancelEdit(<%= w.id %>)">Cancel</button>
-              </form>
-            </td>
-            <td>
-              <% if (w.matchedContacts.length > 0) { %>
-                <div class="matched-contacts">
-                  <% for (const c of w.matchedContacts) { %>
-                    <span class="badge badge-contact"><%= c.first_name %> <%= c.last_name %><% if (c.clan) { %> <span class="clan-tag">(<%= c.clan %>)</span><% } %></span>
-                  <% } %>
-                </div>
-              <% } else { %>
-                <span class="form-hint">No matches</span>
-              <% } %>
-            </td>
-            <td class="actions">
-              <button type="button" class="btn btn-small" onclick="startEdit(<%= w.id %>)">Edit</button>
-              <form method="POST" action="/admin/past-winners/<%= w.id %>/delete" class="form-inline" onsubmit="return confirm('Delete this entry?')">
-                <button type="submit" class="btn btn-small btn-danger">Delete</button>
-              </form>
-            </td>
-          </tr>
-        <% } %>
-      </tbody>
-    </table>
-  <% } %>
 </section>
 
+<% for (const w of winners) { %>
+  <div class="admin-section" style="padding:1rem 1.5rem">
+    <!-- Display mode -->
+    <div id="display-<%= w.id %>">
+      <div class="winner-header">
+        <h3><%= w.year %></h3>
+        <div class="actions">
+          <button type="button" class="btn btn-small" onclick="startEdit(<%= w.id %>)">Edit</button>
+          <form method="POST" action="/admin/past-winners/<%= w.id %>/delete" class="form-inline" onsubmit="return confirm('Delete this year?')">
+            <button type="submit" class="btn btn-small btn-danger">Delete</button>
+          </form>
+        </div>
+      </div>
+      <div class="winner-players-list">
+        <% for (const p of w.players) { %>
+          <div class="winner-player-row">
+            <span class="player-display-name"><%= p.display_name %></span>
+            <% if (p.contact_id) { %>
+              <span class="badge badge-contact"><%= p.contact_first %> <%= p.contact_last %><% if (p.contact_clan) { %> (<%= p.contact_clan %>)<% } %></span>
+            <% } else { %>
+              <span class="badge badge-nodraft">unlinked</span>
+            <% } %>
+          </div>
+        <% } %>
+        <% if (w.players.length === 0) { %>
+          <span class="form-hint">No players — <em><%= w.team_display %></em></span>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Edit mode -->
+    <form method="POST" action="/admin/past-winners/<%= w.id %>/edit" id="edit-<%= w.id %>" style="display:none">
+      <div class="form-group" style="width:5rem;margin-bottom:0.75rem">
+        <label>Year</label>
+        <input type="number" name="year" value="<%= w.year %>" min="1990" max="2099">
+      </div>
+      <div class="player-inputs" id="players-<%= w.id %>">
+        <% for (const p of w.players) { %>
+          <div class="player-edit-row">
+            <input type="text" name="display_name" value="<%= p.display_name %>" placeholder="Display name">
+            <select name="contact_id">
+              <option value="">-- Link contact --</option>
+              <% for (const c of contacts) { %>
+                <option value="<%= c.id %>" <%= p.contact_id === c.id ? 'selected' : '' %>><%= c.first_name || '' %> <%= c.last_name || '' %></option>
+              <% } %>
+            </select>
+            <button type="button" class="btn btn-small btn-danger" onclick="this.closest('.player-edit-row').remove()">x</button>
+          </div>
+        <% } %>
+      </div>
+      <button type="button" class="btn btn-small" onclick="addRow('players-<%= w.id %>')" style="margin-top:0.35rem">+ Add Player</button>
+      <div style="margin-top:0.75rem;display:flex;gap:0.5rem">
+        <button type="submit" class="btn btn-small btn-primary">Save</button>
+        <button type="button" class="btn btn-small" onclick="cancelEdit(<%= w.id %>)">Cancel</button>
+      </div>
+    </form>
+  </div>
+<% } %>
+
 <script>
+const contactList = <%- JSON.stringify(contacts.map(c => ({ id: c.id, label: (c.first_name || '') + ' ' + (c.last_name || '') }))) %>;
+
 function startEdit(id) {
-  document.getElementById('team-text-' + id).style.display = 'none';
-  const form = document.getElementById('edit-form-' + id);
-  form.style.display = 'flex';
+  document.getElementById('display-' + id).style.display = 'none';
+  document.getElementById('edit-' + id).style.display = 'block';
 }
+
 function cancelEdit(id) {
-  document.getElementById('team-text-' + id).style.display = '';
-  document.getElementById('edit-form-' + id).style.display = 'none';
+  document.getElementById('display-' + id).style.display = '';
+  document.getElementById('edit-' + id).style.display = 'none';
+}
+
+function addRow(containerId) {
+  const container = document.getElementById(containerId);
+  const row = document.createElement('div');
+  row.className = 'player-edit-row';
+
+  const nameInput = document.createElement('input');
+  nameInput.type = 'text';
+  nameInput.name = 'display_name';
+  nameInput.placeholder = 'Display name';
+
+  const select = document.createElement('select');
+  select.name = 'contact_id';
+  const empty = document.createElement('option');
+  empty.value = '';
+  empty.textContent = '-- Link contact --';
+  select.appendChild(empty);
+  contactList.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.label;
+    select.appendChild(opt);
+  });
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn btn-small btn-danger';
+  btn.textContent = 'x';
+  btn.onclick = () => row.remove();
+
+  row.appendChild(nameInput);
+  row.appendChild(select);
+  row.appendChild(btn);
+  container.appendChild(row);
 }
 </script>

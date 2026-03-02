@@ -982,10 +982,15 @@ img { max-width: 100%; }
 .stroke-total { padding-top: 0.5rem; border-top: 1px solid var(--gray-200); font-size: 0.85rem; }
 
 /* Past winners admin */
-.matched-contacts { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.winner-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.winner-header h3 { font-size: 1.1rem; color: var(--navy); font-family: var(--font-display); margin: 0; }
+.winner-players-list { display: flex; flex-direction: column; gap: 0.25rem; }
+.winner-player-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+.player-display-name { font-weight: 500; }
+.player-edit-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.35rem; }
+.player-edit-row input[type="text"] { flex: 1; min-width: 140px; padding: 0.35rem 0.6rem; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: var(--radius); }
+.player-edit-row select { flex: 1; min-width: 140px; padding: 0.35rem 0.6rem; font-size: 0.85rem; border: 1px solid var(--gray-300); border-radius: var(--radius); }
 .badge-contact { background: #e8f5e9; color: #2e7d32; font-size: 0.72rem; }
-.badge-contact .clan-tag { opacity: 0.7; font-size: 0.65rem; }
-.winner-edit-form { display: flex; gap: 0.5rem; align-items: center; }
 
 /* === Footer === */
 .footer {
