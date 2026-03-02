@@ -27,7 +27,10 @@
           <% } %>
           <div class="admin-gallery-info">
             <p><strong><%= item.original_name %></strong></p>
-            <% if (item.caption) { %><p><%= item.caption %></p><% } %>
+            <form method="POST" action="/admin/gallery/<%= item.id %>/caption" class="form-inline" style="margin:0.35rem 0">
+              <input type="text" name="caption" value="<%= item.caption || '' %>" placeholder="Add caption..." style="flex:1">
+              <button type="submit" class="btn btn-small">Save</button>
+            </form>
             <% if (item.uploaded_by) { %><p class="form-hint">By: <%= item.uploaded_by %></p><% } %>
             <p class="form-hint"><%= new Date(item.created_at).toLocaleDateString() %></p>
             <div class="admin-gallery-actions">
@@ -61,7 +64,10 @@
             </video>
           <% } %>
           <div class="admin-gallery-info">
-            <% if (item.caption) { %><p><%= item.caption %></p><% } %>
+            <form method="POST" action="/admin/gallery/<%= item.id %>/caption" class="form-inline" style="margin:0.25rem 0">
+              <input type="text" name="caption" value="<%= item.caption || '' %>" placeholder="Add caption..." style="flex:1">
+              <button type="submit" class="btn btn-small">Save</button>
+            </form>
             <% if (item.uploaded_by) { %><p class="form-hint">By: <%= item.uploaded_by %></p><% } %>
             <div class="admin-gallery-actions">
               <form method="POST" action="/admin/gallery/<%= item.id %>/delete" class="form-inline" onsubmit="return confirm('Delete?')">

@@ -233,6 +233,11 @@ router.post('/gallery/:id/approve', (req, res) => {
   res.redirect('/admin/gallery');
 });
 
+router.post('/gallery/:id/caption', express.urlencoded({ extended: true }), (req, res) => {
+  Gallery.updateCaption(req.params.id, req.body.caption?.trim());
+  res.redirect('/admin/gallery');
+});
+
 router.post('/gallery/:id/delete', (req, res) => {
   const row = Gallery.delete(req.params.id);
   if (row?.filename) {

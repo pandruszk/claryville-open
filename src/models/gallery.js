@@ -23,6 +23,10 @@ const Gallery = {
     db.prepare('UPDATE gallery SET approved = 1 WHERE id = ?').run(id);
   },
 
+  updateCaption(id, caption) {
+    db.prepare('UPDATE gallery SET caption = ? WHERE id = ?').run(caption || null, id);
+  },
+
   delete(id) {
     return db.prepare('DELETE FROM gallery WHERE id = ? RETURNING filename').get(id);
   },

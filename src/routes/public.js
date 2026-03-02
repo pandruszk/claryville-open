@@ -45,22 +45,22 @@ router.get('/', (req, res) => {
 // Rules
 router.get('/rules', (req, res) => {
   const settings = getSettings();
-  res.render('rules', { settings });
+  res.render('rules', { settings, title: 'Rules' });
 });
 
 // Past Winners
 router.get('/past-winners', (req, res) => {
   const settings = getSettings();
-  res.render('past-winners', { settings });
+  res.render('past-winners', { settings, title: 'Past Winners' });
 });
 
 // Register page
 router.get('/register', (req, res) => {
   const settings = getSettings();
   if (settings.registration_open !== 'true') {
-    return res.render('register', { settings, closed: true });
+    return res.render('register', { settings, closed: true, title: 'Register' });
   }
-  res.render('register', { settings, closed: false, success: req.query.success });
+  res.render('register', { settings, closed: false, success: req.query.success, title: 'Register' });
 });
 
 // Register submit
@@ -144,7 +144,7 @@ router.get('/groups', (req, res) => {
     });
   }
 
-  res.render('groups', { settings, complete, looking });
+  res.render('groups', { settings, complete, looking, title: 'Groups' });
 });
 
 // Donate page
@@ -152,6 +152,7 @@ router.get('/donate', (req, res) => {
   const settings = getSettings();
   res.render('donate', {
     settings,
+    title: 'Donate',
     stripeKey: StripeService.getPublishableKey(),
     stripeConfigured: StripeService.isConfigured(),
     success: req.query.success,
@@ -190,7 +191,7 @@ router.get('/leaderboard', (req, res) => {
     highNet = Scores.getHighNet();
     contests = Scores.getContests();
   }
-  res.render('leaderboard', { settings, published, netLeaderboard, grossLeaderboard, highNet, contests });
+  res.render('leaderboard', { settings, published, netLeaderboard, grossLeaderboard, highNet, contests, title: 'Leaderboard' });
 });
 
 // Gallery
@@ -199,7 +200,7 @@ router.get('/gallery', (req, res) => {
   const media = Gallery.getApproved();
   const photos = media.filter(m => m.media_type === 'photo');
   const videos = media.filter(m => m.media_type === 'video');
-  res.render('gallery', { settings, photos, videos, success: req.query.success });
+  res.render('gallery', { settings, photos, videos, success: req.query.success, title: 'Gallery' });
 });
 
 router.post('/gallery/upload', upload.single('file'), (req, res) => {
