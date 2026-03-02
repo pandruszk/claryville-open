@@ -1,12 +1,33 @@
 const express = require('express');
 const router = express.Router();
+const path = require('path');
+const multer = require('multer');
 const db = require('../models/db');
 const Players = require('../models/players');
 const Groups = require('../models/groups');
 const Scores = require('../models/scores');
+const Gallery = require('../models/gallery');
 const EmailService = require('../services/email');
 const StripeService = require('../services/stripe');
 const { calculateTeamStrokes, getTeeBox, TEE_COLORS } = require('../services/handicap');
+
+// Multer config for gallery uploads
+const storage = multer.diskStorage({
+  destination: path.join(__dirname, '../public/media/uploads'),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, Date.now() + '-' + Math.random().toString(36).slice(2, 8) + ext);
+  },
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.mp4', '.mov', '.webm'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    cb(null, allowed.includes(ext));
+  },
+});
 
 function getSettings() {
   const rows = db.prepare('SELECT key, value FROM settings').all();
@@ -170,6 +191,29 @@ router.get('/leaderboard', (req, res) => {
     contests = Scores.getContests();
   }
   res.render('leaderboard', { settings, published, netLeaderboard, grossLeaderboard, highNet, contests });
+});
+
+// Gallery
+router.get('/gallery', (req, res) => {
+  const settings = getSettings();
+  const media = Gallery.getApproved();
+  const photos = media.filter(m => m.media_type === 'photo');
+  const videos = media.filter(m => m.media_type === 'video');
+  res.render('gallery', { settings, photos, videos, success: req.query.success });
+});
+
+router.post('/gallery/upload', upload.single('file'), (req, res) => {
+  if (!req.file) return res.redirect('/gallery');
+  const ext = path.extname(req.file.originalname).toLowerCase();
+  const isVideo = ['.mp4', '.mov', '.webm'].includes(ext);
+  Gallery.add(
+    req.file.filename,
+    req.file.originalname,
+    isVideo ? 'video' : 'photo',
+    req.body.caption || null,
+    req.body.uploaded_by || null
+  );
+  res.redirect('/gallery?success=1');
 });
 
 module.exports = router;

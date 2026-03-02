@@ -241,6 +241,8 @@ img { max-width: 100%; }
 
 .hero-image {
   background: linear-gradient(135deg, #2d5016 0%, #1a3a0a 40%, #0c2340 100%);
+  background-size: cover;
+  background-position: center;
   position: relative;
   overflow: hidden;
 }
@@ -248,9 +250,7 @@ img { max-width: 100%; }
 .hero-image-overlay {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(ellipse at 30% 50%, rgba(201,168,76,0.15) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 80%, rgba(45,80,22,0.3) 0%, transparent 50%);
+  background: linear-gradient(to right, rgba(12,35,64,0.15) 0%, rgba(12,35,64,0.05) 100%);
 }
 
 /* === Feature Strip === */
@@ -724,6 +724,120 @@ img { max-width: 100%; }
 
 .plaque-year { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: #3d2510; margin-bottom: 0.2rem; }
 .plaque-names { font-size: 0.78rem; color: #4a2e14; line-height: 1.3; font-weight: 500; }
+
+/* === Gallery === */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.photo-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+}
+
+.photo-card img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.photo-card img:hover { transform: scale(1.02); }
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.video-card {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  background: var(--gray-900);
+  border: 1px solid var(--gray-200);
+}
+
+.video-card video { width: 100%; display: block; }
+
+.media-caption {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--gray-600);
+  background: var(--white);
+}
+
+.upload-section {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--gray-200);
+}
+
+.upload-form input[type="file"] {
+  padding: 0.5rem;
+  border: 2px dashed var(--gray-300);
+  border-radius: var(--radius);
+  width: 100%;
+  cursor: pointer;
+  background: var(--gray-50);
+}
+
+.upload-form input[type="file"]:hover { border-color: var(--navy); }
+
+/* Lightbox */
+.lightbox-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.lightbox-overlay.active { display: flex; }
+
+.lightbox-overlay img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: var(--radius);
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+}
+
+/* Admin gallery */
+.admin-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.admin-gallery-item {
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--white);
+}
+
+.admin-gallery-item img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+}
+
+.admin-gallery-info { padding: 0.75rem; }
+.admin-gallery-info p { font-size: 0.82rem; margin-bottom: 0.25rem; }
+.admin-gallery-actions { display: flex; gap: 0.35rem; margin-top: 0.5rem; }
 
 /* === Admin (kept functional, navy themed) === */
 .admin-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; max-width: 1200px; margin: 0 auto; }

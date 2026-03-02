@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 const db = require('../models/db');
 const Players = require('../models/players');
 const Groups = require('../models/groups');
 const Scores = require('../models/scores');
 const Donations = require('../models/donations');
+const Gallery = require('../models/gallery');
 const EmailService = require('../services/email');
 const InboxService = require('../services/inbox');
 const { calculateTeamStrokes, getTeeBox, TEE_COLORS } = require('../services/handicap');
@@ -216,6 +219,27 @@ router.post('/contests', express.urlencoded({ extended: true }), (req, res) => {
     }
   }
   res.redirect('/admin/scores');
+});
+
+// Gallery management
+router.get('/gallery', (req, res) => {
+  const pending = Gallery.getPending();
+  const approved = Gallery.getApproved();
+  res.render('admin/gallery', { pending, approved });
+});
+
+router.post('/gallery/:id/approve', (req, res) => {
+  Gallery.approve(req.params.id);
+  res.redirect('/admin/gallery');
+});
+
+router.post('/gallery/:id/delete', (req, res) => {
+  const row = Gallery.delete(req.params.id);
+  if (row?.filename) {
+    const filePath = path.join(__dirname, '../public/media/uploads', row.filename);
+    fs.unlink(filePath, () => {});
+  }
+  res.redirect('/admin/gallery');
 });
 
 function getSettings() {

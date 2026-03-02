@@ -1,0 +1,76 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Gallery Management</h1>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/groups">Groups</a>
+  <a href="/admin/inbox">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/scores">Scores</a>
+  <a href="/admin/gallery" class="active">Gallery</a>
+</nav>
+
+<% if (pending.length > 0) { %>
+  <section class="admin-section">
+    <h2>Pending Review (<%= pending.length %>)</h2>
+    <div class="admin-gallery-grid">
+      <% for (const item of pending) { %>
+        <div class="admin-gallery-item">
+          <% if (item.media_type === 'photo') { %>
+            <img src="/media/uploads/<%= item.filename %>" alt="<%= item.caption || '' %>">
+          <% } else { %>
+            <video controls preload="metadata" style="width:100%">
+              <source src="/media/uploads/<%= item.filename %>" type="video/mp4">
+            </video>
+          <% } %>
+          <div class="admin-gallery-info">
+            <p><strong><%= item.original_name %></strong></p>
+            <% if (item.caption) { %><p><%= item.caption %></p><% } %>
+            <% if (item.uploaded_by) { %><p class="form-hint">By: <%= item.uploaded_by %></p><% } %>
+            <p class="form-hint"><%= new Date(item.created_at).toLocaleDateString() %></p>
+            <div class="admin-gallery-actions">
+              <form method="POST" action="/admin/gallery/<%= item.id %>/approve" class="form-inline">
+                <button type="submit" class="btn btn-small btn-primary">Approve</button>
+              </form>
+              <form method="POST" action="/admin/gallery/<%= item.id %>/delete" class="form-inline" onsubmit="return confirm('Delete?')">
+                <button type="submit" class="btn btn-small btn-danger">Delete</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </section>
+<% } else { %>
+  <div class="alert alert-info" style="max-width:1200px;margin:0 auto 1rem;padding:1rem 1.5rem;">No uploads pending review.</div>
+<% } %>
+
+<% if (approved.length > 0) { %>
+  <section class="admin-section">
+    <h2>Approved (<%= approved.length %>)</h2>
+    <div class="admin-gallery-grid">
+      <% for (const item of approved) { %>
+        <div class="admin-gallery-item">
+          <% if (item.media_type === 'photo') { %>
+            <img src="/media/uploads/<%= item.filename %>" alt="<%= item.caption || '' %>">
+          <% } else { %>
+            <video controls preload="metadata" style="width:100%">
+              <source src="/media/uploads/<%= item.filename %>" type="video/mp4">
+            </video>
+          <% } %>
+          <div class="admin-gallery-info">
+            <% if (item.caption) { %><p><%= item.caption %></p><% } %>
+            <% if (item.uploaded_by) { %><p class="form-hint">By: <%= item.uploaded_by %></p><% } %>
+            <div class="admin-gallery-actions">
+              <form method="POST" action="/admin/gallery/<%= item.id %>/delete" class="form-inline" onsubmit="return confirm('Delete?')">
+                <button type="submit" class="btn btn-small btn-danger">Remove</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </section>
+<% } %>

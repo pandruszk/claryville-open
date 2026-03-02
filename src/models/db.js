@@ -88,6 +88,17 @@ db.exec(`
     key TEXT PRIMARY KEY,
     value TEXT
   );
+
+  CREATE TABLE IF NOT EXISTS gallery (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    filename TEXT NOT NULL,
+    original_name TEXT,
+    media_type TEXT NOT NULL CHECK(media_type IN ('photo', 'video')),
+    caption TEXT,
+    uploaded_by TEXT,
+    approved INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 // Seed default settings if empty
@@ -106,6 +117,17 @@ if (settingsCount.c === 0) {
     for (const [key, value] of defaults) insert.run(key, value);
   });
   seedAll();
+}
+
+// Seed gallery with initial photos/video if empty
+const galleryCount = db.prepare('SELECT COUNT(*) as c FROM gallery').get();
+if (galleryCount.c === 0) {
+  const insertGallery = db.prepare(
+    'INSERT INTO gallery (filename, original_name, media_type, caption, approved) VALUES (?, ?, ?, ?, 1)'
+  );
+  insertGallery.run('IMG_2020.jpg', 'IMG_2020.jpg', 'photo', 'On the course', );
+  insertGallery.run('IMG_4703.jpg', 'IMG_4703.jpg', 'photo', 'On the green');
+  insertGallery.run('IMG_6812.mp4', 'IMG_6812.MOV', 'video', 'Claryville Open highlights');
 }
 
 module.exports = db;

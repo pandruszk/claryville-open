@@ -1,0 +1,67 @@
+<% layout('layout') -%>
+<div class="page-header">
+  <h1>Gallery</h1>
+  <p>Photos &amp; videos from the Claryville Open</p>
+</div>
+
+<div class="page-content">
+
+<% if (success) { %>
+  <div class="alert alert-success">Thanks for sharing! Your upload will appear after review.</div>
+<% } %>
+
+<% if (videos.length > 0) { %>
+  <h2 class="section-title">Videos</h2>
+  <div class="video-grid">
+    <% for (const v of videos) { %>
+      <div class="video-card">
+        <video controls preload="metadata">
+          <source src="/media/uploads/<%= v.filename %>" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <% if (v.caption) { %><p class="media-caption"><%= v.caption %></p><% } %>
+      </div>
+    <% } %>
+  </div>
+<% } %>
+
+<% if (photos.length > 0) { %>
+  <h2 class="section-title" <% if (videos.length > 0) { %>style="margin-top:2rem"<% } %>>Photos</h2>
+  <div class="photo-grid">
+    <% for (const p of photos) { %>
+      <div class="photo-card">
+        <img src="/media/uploads/<%= p.filename %>" alt="<%= p.caption || 'Claryville Open' %>" loading="lazy">
+        <% if (p.caption) { %><p class="media-caption"><%= p.caption %></p><% } %>
+      </div>
+    <% } %>
+  </div>
+<% } %>
+
+<% if (photos.length === 0 && videos.length === 0) { %>
+  <div class="alert alert-info">No photos or videos yet. Be the first to share!</div>
+<% } %>
+
+<section class="upload-section">
+  <h2 class="section-title">Share Your Photos & Videos</h2>
+  <p class="section-desc">Upload your Claryville Open memories. Photos and videos are reviewed before appearing in the gallery.</p>
+  <form method="POST" action="/gallery/upload" enctype="multipart/form-data" class="form upload-form">
+    <div class="form-group">
+      <label for="file">Photo or Video *</label>
+      <input type="file" id="file" name="file" accept="image/*,video/*" required>
+      <p class="form-hint">Max 100MB. JPG, PNG, MP4, MOV accepted.</p>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="caption">Caption <span class="optional">(optional)</span></label>
+        <input type="text" id="caption" name="caption" placeholder="e.g. Hole 9, 2024">
+      </div>
+      <div class="form-group">
+        <label for="uploaded_by">Your Name <span class="optional">(optional)</span></label>
+        <input type="text" id="uploaded_by" name="uploaded_by" placeholder="e.g. John Smith">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Upload</button>
+  </form>
+</section>
+
+</div>
