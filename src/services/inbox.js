@@ -1,6 +1,7 @@
 const Imap = require('imap');
 const { simpleParser } = require('mailparser');
 const db = require('../models/db');
+const AutoReplyService = require('./auto-reply');
 
 let polling = false;
 
@@ -102,6 +103,13 @@ const InboxService = {
       }
       if (emails.length > 0) {
         console.log(`[Inbox] Fetched ${emails.length} new email(s)`);
+      }
+
+      // Generate AI drafts for new messages
+      try {
+        await AutoReplyService.processNewMessages();
+      } catch (err) {
+        console.error('[AutoReply] Error during auto-reply processing:', err.message);
       }
     } catch (err) {
       console.error('[Inbox] Poll error:', err.message);

@@ -11,6 +11,7 @@
   <a href="/admin/email">Email</a>
   <a href="/admin/scores">Scores</a>
   <a href="/admin/gallery">Gallery</a>
+  <a href="/admin/rules-suggestions">Rules</a>
 </nav>
 
 <div class="stats-grid">
@@ -29,6 +30,10 @@
   <div class="stat-card">
     <div class="stat-number"><%= emailStats.totalRecipients %></div>
     <div class="stat-label">Emails Sent (<%= emailStats.total %> campaigns)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number"><%= draftStats.pending %></div>
+    <div class="stat-label">Draft Replies (<%= draftStats.ruleSuggestions %> rule suggestions)</div>
   </div>
 </div>
 

@@ -13,7 +13,14 @@
   <a href="/admin/email">Email</a>
   <a href="/admin/scores">Scores</a>
   <a href="/admin/gallery">Gallery</a>
+  <a href="/admin/rules-suggestions">Rules</a>
 </nav>
+
+<div class="draft-stats-bar">
+  <span class="draft-stat"><strong><%= draftStats.pending %></strong> pending drafts</span>
+  <span class="draft-stat"><strong><%= draftStats.ruleSuggestions %></strong> rule suggestions</span>
+  <span class="draft-stat"><strong><%= draftStats.sent %></strong> sent</span>
+</div>
 
 <% if (messages.length === 0) { %>
   <div class="alert alert-info">No incoming emails. Configure IMAP in your .env to start polling.</div>
@@ -25,6 +32,7 @@
         <th>From</th>
         <th>Subject</th>
         <th>Received</th>
+        <th>AI Draft</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -35,6 +43,22 @@
           <td><%= msg.from_addr %></td>
           <td><%= msg.subject %></td>
           <td><%= new Date(msg.received_at).toLocaleDateString() %></td>
+          <td>
+            <% if (msg.draft) { %>
+              <% if (msg.draft.status === 'pending') { %>
+                <a href="/admin/inbox/<%= msg.id %>/draft" class="btn btn-small btn-primary">Review Draft</a>
+                <% if (msg.draft.is_rule_suggestion) { %>
+                  <span class="badge badge-rule">Rule Suggestion</span>
+                <% } %>
+              <% } else if (msg.draft.status === 'sent') { %>
+                <span class="badge badge-complete">Sent</span>
+              <% } else if (msg.draft.status === 'dismissed') { %>
+                <span class="badge badge-dismissed">Dismissed</span>
+              <% } %>
+            <% } else { %>
+              <span class="badge badge-nodraft">No Draft</span>
+            <% } %>
+          </td>
           <td class="actions">
             <button class="btn btn-small" onclick="toggleBody(<%= msg.id %>)">View</button>
             <% if (!msg.processed) { %>
@@ -48,7 +72,7 @@
           </td>
         </tr>
         <tr id="body-<%= msg.id %>" class="email-body-row" style="display:none">
-          <td colspan="5"><pre class="email-body"><%= msg.body %></pre></td>
+          <td colspan="6"><pre class="email-body"><%= msg.body %></pre></td>
         </tr>
       <% } %>
     </tbody>

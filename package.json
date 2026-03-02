@@ -8,6 +8,7 @@
     "dev": "node --watch src/server.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
     "better-sqlite3": "^11.7.0",
     "ejs": "^3.1.10",
     "express": "^4.21.0",

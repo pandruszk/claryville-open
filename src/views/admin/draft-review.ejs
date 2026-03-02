@@ -1,0 +1,101 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Draft Review</h1>
+  <a href="/admin/inbox" class="btn btn-small">Back to Inbox</a>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/groups">Groups</a>
+  <a href="/admin/inbox" class="active">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/scores">Scores</a>
+  <a href="/admin/gallery">Gallery</a>
+  <a href="/admin/rules-suggestions">Rules</a>
+</nav>
+
+<div class="draft-review-layout">
+  <!-- Original email -->
+  <section class="admin-section">
+    <h2>Original Email</h2>
+    <div class="original-email-meta">
+      <p><strong>From:</strong> <%= message.from_addr %></p>
+      <p><strong>Subject:</strong> <%= message.subject %></p>
+      <p><strong>Received:</strong> <%= new Date(message.received_at).toLocaleString() %></p>
+    </div>
+    <div class="email-preview">
+      <pre class="email-body"><%= message.body %></pre>
+    </div>
+  </section>
+
+  <% if (!draft) { %>
+    <section class="admin-section">
+      <div class="alert alert-info">No AI draft available for this message. The API may have been unavailable.</div>
+      <form method="POST" action="/admin/inbox/<%= message.id %>/draft/regenerate">
+        <button type="submit" class="btn btn-primary">Generate Draft</button>
+      </form>
+    </section>
+  <% } else { %>
+
+    <% if (draft.is_rule_suggestion && draft.suggested_rule_text) { %>
+      <section class="admin-section rule-suggestion-callout">
+        <h2>Rule Suggestion Detected</h2>
+        <p class="suggested-rule-text">"<%= draft.suggested_rule_text %>"</p>
+        <form method="POST" action="/admin/rules-suggestions/<%= draft.id %>/accept" class="rule-accept-form">
+          <div class="form-group">
+            <label>Rule Text (editable)</label>
+            <input type="text" name="rule_text" value="<%= draft.suggested_rule_text %>" class="rule-text-input">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select name="category">
+              <option value="general">General</option>
+              <option value="format">Format</option>
+              <option value="strokes">Strokes</option>
+              <option value="tee_boxes">Tee Boxes</option>
+              <option value="prizes">Prizes</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-small btn-accent">Accept Rule</button>
+        </form>
+      </section>
+    <% } %>
+
+    <!-- AI Draft preview -->
+    <section class="admin-section">
+      <h2>AI Draft Reply <span class="badge <%= draft.status === 'sent' ? 'badge-complete' : draft.status === 'dismissed' ? 'badge-dismissed' : 'badge-draft-pending' %>"><%= draft.status %></span></h2>
+      <p class="form-hint">Subject: <strong><%= draft.draft_subject %></strong></p>
+      <div class="draft-preview">
+        <%- draft.edited_body || draft.draft_body %>
+      </div>
+    </section>
+
+    <% if (draft.status === 'pending') { %>
+      <!-- Edit form -->
+      <section class="admin-section">
+        <h2>Edit Draft</h2>
+        <form method="POST" action="/admin/inbox/<%= message.id %>/draft/edit">
+          <div class="form-group">
+            <label>Reply Body (HTML)</label>
+            <textarea name="edited_body" rows="12" class="draft-editor"><%= draft.edited_body || draft.draft_body %></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-small">Save Edits</button>
+        </form>
+      </section>
+
+      <!-- Action buttons -->
+      <div class="draft-actions">
+        <form method="POST" action="/admin/inbox/<%= message.id %>/draft/send" class="form-inline">
+          <button type="submit" class="btn btn-primary" onclick="return confirm('Send this reply?')">Approve & Send</button>
+        </form>
+        <form method="POST" action="/admin/inbox/<%= message.id %>/draft/dismiss" class="form-inline">
+          <button type="submit" class="btn btn-small">Dismiss</button>
+        </form>
+        <form method="POST" action="/admin/inbox/<%= message.id %>/draft/regenerate" class="form-inline">
+          <button type="submit" class="btn btn-small" onclick="return confirm('Regenerate draft? Current draft will be replaced.')">Regenerate</button>
+        </form>
+      </div>
+    <% } %>
+
+  <% } %>
+</div>

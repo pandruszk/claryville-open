@@ -30,6 +30,25 @@ const EmailService = {
     return data;
   },
 
+  async sendReply(to, subject, html) {
+    const client = getClient();
+    if (!client) {
+      console.log('[Email] No API key configured, skipping reply to:', to);
+      return null;
+    }
+    const { data, error } = await client.emails.send({
+      from: process.env.REPLY_FROM || process.env.EMAIL_FROM || 'Claryville Open <noreply@claryvilleopen.com>',
+      to: [to],
+      subject,
+      html,
+    });
+    if (error) {
+      console.error('[Email] Reply send error:', error);
+      throw error;
+    }
+    return data;
+  },
+
   async sendBulk(recipients, subject, html) {
     const client = getClient();
     if (!client) {

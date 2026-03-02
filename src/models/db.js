@@ -99,6 +99,27 @@ db.exec(`
     approved INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS draft_replies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    inbox_message_id INTEGER NOT NULL REFERENCES inbox_messages(id),
+    draft_subject TEXT NOT NULL,
+    draft_body TEXT NOT NULL,
+    is_rule_suggestion INTEGER DEFAULT 0,
+    suggested_rule_text TEXT,
+    status TEXT DEFAULT 'pending',
+    edited_body TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    sent_at TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS tournament_rules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rule_text TEXT NOT NULL,
+    category TEXT DEFAULT 'general',
+    added_from_suggestion INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 // Seed default settings if empty

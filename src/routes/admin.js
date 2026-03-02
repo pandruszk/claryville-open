@@ -10,6 +10,7 @@ const Donations = require('../models/donations');
 const Gallery = require('../models/gallery');
 const EmailService = require('../services/email');
 const InboxService = require('../services/inbox');
+const AutoReplyService = require('../services/auto-reply');
 const { calculateTeamStrokes, getTeeBox, TEE_COLORS } = require('../services/handicap');
 
 // Auth middleware
@@ -47,9 +48,10 @@ router.get('/', (req, res) => {
   const donationTotal = Donations.total();
   const donationCount = Donations.count();
   const emailStats = EmailService.getEmailStats();
+  const draftStats = AutoReplyService.getStats();
   const settings = getSettings();
   res.render('admin/dashboard', {
-    playerCount, groupCount, donationTotal, donationCount, emailStats, settings
+    playerCount, groupCount, donationTotal, donationCount, emailStats, draftStats, settings
   });
 });
 
@@ -144,7 +146,12 @@ router.post('/players/:id/delete', (req, res) => {
 // Inbox
 router.get('/inbox', (req, res) => {
   const messages = InboxService.getAll();
-  res.render('admin/inbox', { messages });
+  const draftStats = AutoReplyService.getStats();
+  // Attach draft to each message
+  for (const msg of messages) {
+    msg.draft = AutoReplyService.getDraftByMessageId(msg.id);
+  }
+  res.render('admin/inbox', { messages, draftStats });
 });
 
 router.post('/inbox/:id/process', (req, res) => {
@@ -160,6 +167,90 @@ router.post('/inbox/:id/delete', (req, res) => {
 router.post('/inbox/poll', async (req, res) => {
   await InboxService.poll();
   res.redirect('/admin/inbox');
+});
+
+// Draft review
+router.get('/inbox/:id/draft', (req, res) => {
+  const message = db.prepare('SELECT * FROM inbox_messages WHERE id = ?').get(req.params.id);
+  if (!message) return res.redirect('/admin/inbox');
+  const draft = AutoReplyService.getDraftByMessageId(message.id);
+  res.render('admin/draft-review', { message, draft });
+});
+
+router.post('/inbox/:id/draft/edit', express.urlencoded({ extended: true }), (req, res) => {
+  const draft = AutoReplyService.getDraftByMessageId(req.params.id);
+  if (draft) {
+    AutoReplyService.updateDraftBody(draft.id, req.body.edited_body);
+  }
+  res.redirect(`/admin/inbox/${req.params.id}/draft`);
+});
+
+router.post('/inbox/:id/draft/send', async (req, res) => {
+  const message = db.prepare('SELECT * FROM inbox_messages WHERE id = ?').get(req.params.id);
+  const draft = AutoReplyService.getDraftByMessageId(req.params.id);
+  if (!message || !draft) return res.redirect('/admin/inbox');
+
+  try {
+    const bodyToSend = draft.edited_body || draft.draft_body;
+    // Extract email address from "Name <email>" format
+    const emailMatch = message.from_addr.match(/<([^>]+)>/);
+    const toAddr = emailMatch ? emailMatch[1] : message.from_addr;
+    await EmailService.sendReply(toAddr, draft.draft_subject, bodyToSend);
+    AutoReplyService.markSent(draft.id);
+    InboxService.markProcessed(message.id);
+  } catch (err) {
+    console.error('[Admin] Error sending reply:', err.message);
+  }
+  res.redirect('/admin/inbox');
+});
+
+router.post('/inbox/:id/draft/dismiss', (req, res) => {
+  const draft = AutoReplyService.getDraftByMessageId(req.params.id);
+  if (draft) AutoReplyService.markDismissed(draft.id);
+  res.redirect('/admin/inbox');
+});
+
+router.post('/inbox/:id/draft/regenerate', async (req, res) => {
+  const message = db.prepare('SELECT * FROM inbox_messages WHERE id = ?').get(req.params.id);
+  if (!message) return res.redirect('/admin/inbox');
+
+  const existingDraft = AutoReplyService.getDraftByMessageId(message.id);
+  if (existingDraft) AutoReplyService.deleteDraft(existingDraft.id);
+
+  try {
+    const draft = await AutoReplyService.generateDraft(message);
+    if (draft) {
+      db.prepare(`
+        INSERT INTO draft_replies (inbox_message_id, draft_subject, draft_body, is_rule_suggestion, suggested_rule_text)
+        VALUES (?, ?, ?, ?, ?)
+      `).run(message.id, draft.subject, draft.body, draft.isRuleSuggestion, draft.suggestedRuleText);
+    }
+  } catch (err) {
+    console.error('[Admin] Error regenerating draft:', err.message);
+  }
+  res.redirect(`/admin/inbox/${req.params.id}/draft`);
+});
+
+// Rules suggestions
+router.get('/rules-suggestions', (req, res) => {
+  const suggestions = AutoReplyService.getRuleSuggestions();
+  const rules = AutoReplyService.getTournamentRules();
+  res.render('admin/rules-suggestions', { suggestions, rules });
+});
+
+router.post('/rules-suggestions/:draftId/accept', express.urlencoded({ extended: true }), (req, res) => {
+  const draft = AutoReplyService.getDraftById(req.params.draftId);
+  if (draft && draft.suggested_rule_text) {
+    const ruleText = req.body.rule_text || draft.suggested_rule_text;
+    const category = req.body.category || 'general';
+    AutoReplyService.addTournamentRule(ruleText, category, 1);
+  }
+  res.redirect('/admin/rules-suggestions');
+});
+
+router.post('/tournament-rules/:id/delete', (req, res) => {
+  AutoReplyService.deleteTournamentRule(req.params.id);
+  res.redirect('/admin/rules-suggestions');
 });
 
 // Email compose

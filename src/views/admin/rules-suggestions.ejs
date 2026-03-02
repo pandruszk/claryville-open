@@ -1,0 +1,89 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Rules & Suggestions</h1>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/groups">Groups</a>
+  <a href="/admin/inbox">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/scores">Scores</a>
+  <a href="/admin/gallery">Gallery</a>
+  <a href="/admin/rules-suggestions" class="active">Rules</a>
+</nav>
+
+<% if (suggestions.length > 0) { %>
+<section class="admin-section">
+  <h2>Pending Rule Suggestions</h2>
+  <p class="form-hint">These rules were suggested by email senders and flagged by AI.</p>
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>From</th>
+        <th>Subject</th>
+        <th>Suggested Rule</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (const s of suggestions) { %>
+        <tr>
+          <td><%= s.from_addr %></td>
+          <td><%= s.original_subject %></td>
+          <td><%= s.suggested_rule_text %></td>
+          <td class="actions">
+            <form method="POST" action="/admin/rules-suggestions/<%= s.id %>/accept" class="form-inline rule-accept-inline">
+              <input type="text" name="rule_text" value="<%= s.suggested_rule_text %>" class="rule-text-input-sm">
+              <select name="category">
+                <option value="general">General</option>
+                <option value="format">Format</option>
+                <option value="strokes">Strokes</option>
+                <option value="tee_boxes">Tee Boxes</option>
+                <option value="prizes">Prizes</option>
+              </select>
+              <button type="submit" class="btn btn-small btn-accent">Accept</button>
+            </form>
+            <a href="/admin/inbox/<%= s.inbox_message_id %>/draft" class="btn btn-small">View Draft</a>
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</section>
+<% } else { %>
+  <div class="alert alert-info">No pending rule suggestions from emails.</div>
+<% } %>
+
+<section class="admin-section">
+  <h2>Custom Tournament Rules</h2>
+  <p class="form-hint">These rules are included in AI context when generating draft replies.</p>
+  <% if (rules.length > 0) { %>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Rule</th>
+          <th>Source</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const rule of rules) { %>
+          <tr>
+            <td><span class="badge badge-strokes"><%= rule.category %></span></td>
+            <td><%= rule.rule_text %></td>
+            <td><%= rule.added_from_suggestion ? 'Email suggestion' : 'Manual' %></td>
+            <td>
+              <form method="POST" action="/admin/tournament-rules/<%= rule.id %>/delete" class="form-inline" onsubmit="return confirm('Delete this rule?')">
+                <button type="submit" class="btn btn-small btn-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  <% } else { %>
+    <p class="form-hint">No custom rules added yet. Accept suggestions from emails or add them manually.</p>
+  <% } %>
+</section>
