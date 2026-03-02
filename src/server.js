@@ -18,6 +18,38 @@ app.post('/webhook/stripe', express.raw({ type: 'application/json' }), (req, res
   }
 });
 
+// Cloudflare Email Worker webhook
+app.post('/webhook/email', express.json({ limit: '5mb' }), async (req, res) => {
+  const token = req.headers['authorization'];
+  if (!process.env.EMAIL_WEBHOOK_SECRET || token !== `Bearer ${process.env.EMAIL_WEBHOOK_SECRET}`) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { from, subject, body } = req.body;
+  if (!from) {
+    return res.status(400).json({ error: 'Missing from field' });
+  }
+
+  try {
+    const InboxService = require('./services/inbox');
+    InboxService.insertFromWebhook({
+      from: from,
+      subject: subject || '(no subject)',
+      body: body || '',
+    });
+    console.log(`[Webhook] Email received from ${from}: ${subject}`);
+
+    // Trigger auto-reply drafts
+    const AutoReplyService = require('./services/auto-reply');
+    await AutoReplyService.processNewMessages();
+
+    res.json({ received: true });
+  } catch (err) {
+    console.error('[Webhook] Email error:', err.message);
+    res.status(500).json({ error: 'Internal error' });
+  }
+});
+
 // Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -72,7 +104,7 @@ app.use((req, res, next) => {
 app.use('/', require('./routes/public'));
 app.use('/admin', require('./routes/admin'));
 
-// Start IMAP polling
+// Start IMAP polling (skipped if IMAP not configured — emails arrive via webhook instead)
 const InboxService = require('./services/inbox');
 InboxService.startPolling();
 

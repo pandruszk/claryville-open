@@ -1,0 +1,6 @@
+name = "claryville-email-worker"
+main = "worker.js"
+compatibility_date = "2024-09-01"
+
+[vars]
+# WEBHOOK_SECRET is set via `wrangler secret put WEBHOOK_SECRET`

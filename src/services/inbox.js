@@ -130,6 +130,12 @@ const InboxService = {
     db.prepare('UPDATE inbox_messages SET processed = 1 WHERE id = ?').run(id);
   },
 
+  insertFromWebhook({ from, subject, body }) {
+    db.prepare(
+      'INSERT INTO inbox_messages (from_addr, subject, body, received_at) VALUES (?, ?, ?, ?)'
+    ).run(from, subject, body, new Date().toISOString());
+  },
+
   delete(id) {
     db.prepare('DELETE FROM inbox_messages WHERE id = ?').run(id);
   },
