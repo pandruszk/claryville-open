@@ -91,6 +91,25 @@ RULES: https://claryvilleopen.com/rules`;
     }
   }
 
+  // Registered groups and players
+  const groups = db.prepare('SELECT id, name, status FROM groups ORDER BY id').all();
+  if (groups.length > 0) {
+    context += '\n\nREGISTERED GROUPS & PLAYERS:';
+    for (const g of groups) {
+      const players = db.prepare('SELECT name, age, gender, ghin_index FROM players WHERE group_id = ? ORDER BY id').all(g.id);
+      const playerList = players.map(p => {
+        let desc = p.name;
+        const details = [];
+        if (p.age) details.push(`age ${p.age}`);
+        if (p.gender) details.push(p.gender);
+        if (p.ghin_index !== null) details.push(`GHIN ${p.ghin_index}`);
+        if (details.length) desc += ` (${details.join(', ')})`;
+        return desc;
+      }).join(', ');
+      context += `\n- ${g.name} [${g.status}]: ${playerList || 'no players yet'}`;
+    }
+  }
+
   // Past winners
   const winners = db.prepare('SELECT pw.year, GROUP_CONCAT(pwp.display_name, ", ") AS team FROM past_winners pw LEFT JOIN past_winner_players pwp ON pwp.past_winner_id = pw.id GROUP BY pw.id ORDER BY pw.year ASC').all();
   if (winners.length > 0) {
