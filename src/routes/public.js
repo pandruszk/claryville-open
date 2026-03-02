@@ -8,6 +8,7 @@ const Groups = require('../models/groups');
 const Scores = require('../models/scores');
 const Gallery = require('../models/gallery');
 const EmailService = require('../services/email');
+const AutoReplyService = require('../services/auto-reply');
 const StripeService = require('../services/stripe');
 const { calculateTeamStrokes, getTeeBox, TEE_COLORS } = require('../services/handicap');
 
@@ -233,6 +234,49 @@ router.post('/gallery/upload', upload.single('file'), (req, res) => {
     req.body.uploaded_by || null
   );
   res.redirect('/gallery?success=1');
+});
+
+// Questions page
+router.get('/questions', (req, res) => {
+  const settings = getSettings();
+  res.render('questions', { settings, title: 'Questions' });
+});
+
+// Questions chatbot API
+router.post('/api/ask', express.json(), async (req, res) => {
+  const question = (req.body.question || '').trim();
+  if (!question) return res.json({ answer: 'You gotta actually ask something.' });
+
+  try {
+    const Anthropic = require('@anthropic-ai/sdk').default;
+    if (!process.env.ANTHROPIC_API_KEY) {
+      return res.json({ answer: "The brain isn't plugged in right now. Email us at rulescommittee@claryvilleopen.com and a real human will get back to you." });
+    }
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const systemPrompt = AutoReplyService.buildTournamentContext() + `
+
+IMPORTANT INSTRUCTIONS FOR ANSWERING:
+- You are the Claryville Open's sarcastic but helpful AI caddy.
+- Keep answers SHORT (2-4 sentences max).
+- Be funny, a little snarky, but always give the actual answer.
+- The tournament is a family affair — keep it PG-13.
+- If you truly don't know the answer or it's not about the tournament, say something like: "That's above my pay grade. Shoot an email to rulescommittee@claryvilleopen.com and the Rules Committee will sort you out."
+- Never make up rules or info that isn't in your context.
+- Don't use emojis.`;
+
+    const msg = await client.messages.create({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 300,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: question }],
+    });
+
+    const answer = msg.content[0]?.text || "Something went sideways. Email rulescommittee@claryvilleopen.com instead.";
+    res.json({ answer });
+  } catch (err) {
+    console.error('[Questions] AI error:', err.message);
+    res.json({ answer: "The AI caddy took a lunch break. Email rulescommittee@claryvilleopen.com and a human will help you out." });
+  }
 });
 
 // Footer email signup

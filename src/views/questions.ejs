@@ -1,0 +1,74 @@
+<% layout('layout') -%>
+<div class="page-header">
+  <h1>Questions</h1>
+  <p>Look, we're not big on questions around here.</p>
+</div>
+
+<div class="page-content">
+  <div class="questions-intro">
+    <p>Honestly? We'd rather you just read the <a href="/rules">rules</a> and figure it out. But since you're here, we trained an AI caddy on every piece of Claryville Open knowledge we could find. It's not perfect, it's a little mouthy, but it usually gets the job done.</p>
+    <p>If it can't help you, email the Rules Committee at <a href="mailto:rulescommittee@claryvilleopen.com">rulescommittee@claryvilleopen.com</a> and a real human will straighten things out.</p>
+  </div>
+
+  <div class="chat-container">
+    <div class="chat-messages" id="chat-messages">
+      <div class="chat-message bot">
+        <div class="chat-bubble">What do you want to know? And before you ask — no, you can't get extra strokes for being hungover.</div>
+      </div>
+    </div>
+    <form class="chat-input-form" id="chat-form">
+      <input type="text" id="chat-input" placeholder="Ask your question..." autocomplete="off" required>
+      <button type="submit" class="btn btn-primary" id="chat-send">Send</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('chat-form');
+const input = document.getElementById('chat-input');
+const messages = document.getElementById('chat-messages');
+const sendBtn = document.getElementById('chat-send');
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const question = input.value.trim();
+  if (!question) return;
+
+  // Add user message
+  const userDiv = document.createElement('div');
+  userDiv.className = 'chat-message user';
+  userDiv.innerHTML = '<div class="chat-bubble">' + question.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+  messages.appendChild(userDiv);
+
+  input.value = '';
+  input.disabled = true;
+  sendBtn.disabled = true;
+  sendBtn.textContent = '...';
+  messages.scrollTop = messages.scrollHeight;
+
+  // Add thinking indicator
+  const thinkDiv = document.createElement('div');
+  thinkDiv.className = 'chat-message bot';
+  thinkDiv.innerHTML = '<div class="chat-bubble chat-thinking">Thinking...</div>';
+  messages.appendChild(thinkDiv);
+  messages.scrollTop = messages.scrollHeight;
+
+  try {
+    const res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question }),
+    });
+    const data = await res.json();
+    thinkDiv.innerHTML = '<div class="chat-bubble">' + data.answer.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>') + '</div>';
+  } catch (err) {
+    thinkDiv.innerHTML = '<div class="chat-bubble">Something broke. Email <a href="mailto:rulescommittee@claryvilleopen.com">rulescommittee@claryvilleopen.com</a> instead.</div>';
+  }
+
+  input.disabled = false;
+  sendBtn.disabled = false;
+  sendBtn.textContent = 'Send';
+  input.focus();
+  messages.scrollTop = messages.scrollHeight;
+});
+</script>
