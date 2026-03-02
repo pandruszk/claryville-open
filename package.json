@@ -17,6 +17,7 @@
     "mailparser": "^3.7.1",
     "multer": "^2.1.0",
     "resend": "^4.0.0",
-    "stripe": "^17.4.0"
+    "stripe": "^17.4.0",
+    "telnyx": "^5.51.0"
   }
 }

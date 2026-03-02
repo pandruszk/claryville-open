@@ -50,6 +50,33 @@ app.post('/webhook/email', express.json({ limit: '5mb' }), async (req, res) => {
   }
 });
 
+// Telnyx SMS webhook
+app.post('/webhook/sms', express.json(), async (req, res) => {
+  const event = req.body?.data;
+  if (!event || event.event_type !== 'message.received') {
+    return res.sendStatus(200);
+  }
+
+  const from = event.payload?.from?.phone_number;
+  const body = event.payload?.text?.trim();
+
+  if (!from || !body) {
+    return res.sendStatus(200);
+  }
+
+  console.log(`[SMS] Received from ${from}: ${body}`);
+  res.sendStatus(200); // Respond to Telnyx immediately
+
+  try {
+    const SmsService = require('./services/sms');
+    const answer = await SmsService.handleIncoming(from, body);
+    console.log(`[SMS] Replying to ${from}: ${answer.slice(0, 80)}...`);
+    await SmsService.sendReply(from, answer);
+  } catch (err) {
+    console.error('[SMS] Error:', err.message);
+  }
+});
+
 // Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
