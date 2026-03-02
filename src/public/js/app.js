@@ -8,6 +8,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Hero slideshow
+  var slides = document.querySelectorAll('.hero-slide');
+  if (slides.length > 1) {
+    var current = 0;
+    setInterval(function () {
+      slides[current].classList.remove('active');
+      current = (current + 1) % slides.length;
+      slides[current].classList.add('active');
+    }, 5000);
+  }
+
   // Gallery lightbox
   var photos = document.querySelectorAll('.photo-card img');
   if (photos.length > 0) {

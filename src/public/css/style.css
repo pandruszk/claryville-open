@@ -233,18 +233,33 @@ img { max-width: 100%; }
 
 .hero-ctas { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
-.hero-image {
-  background: linear-gradient(135deg, #2d5016 0%, #1a3a0a 40%, #0c2340 100%);
-  background-size: cover;
-  background-position: center;
+.hero-slideshow {
   position: relative;
   overflow: hidden;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;
+}
+
+.hero-slide.active { opacity: 1; }
+
+.hero-slide:nth-child(2) {
+  background-size: 60%;
+  background-repeat: no-repeat;
+  background-color: var(--navy);
 }
 
 .hero-image-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(to right, rgba(12,35,64,0.15) 0%, rgba(12,35,64,0.05) 100%);
+  z-index: 1;
 }
 
 /* === Feature Strip === */
