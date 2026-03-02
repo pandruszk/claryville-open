@@ -91,6 +91,15 @@ RULES: https://claryvilleopen.com/rules`;
     }
   }
 
+  // Past winners
+  const winners = db.prepare('SELECT pw.year, GROUP_CONCAT(pwp.display_name, ", ") AS team FROM past_winners pw LEFT JOIN past_winner_players pwp ON pwp.past_winner_id = pw.id GROUP BY pw.id ORDER BY pw.year ASC').all();
+  if (winners.length > 0) {
+    context += '\n\nPAST WINNERS:';
+    for (const w of winners) {
+      context += `\n- ${w.year}: ${w.team || 'Unknown'}`;
+    }
+  }
+
   return context;
 }
 
