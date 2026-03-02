@@ -9,6 +9,12 @@ services:
     env_file:
       - .env
 
+  ocr:
+    build: ./ocr-service
+    restart: unless-stopped
+    ports:
+      - "8010:8010"
+
   nginx:
     image: nginx:alpine
     restart: unless-stopped
