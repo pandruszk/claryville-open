@@ -276,18 +276,36 @@ router.post('/tournament-rules/:id/delete', (req, res) => {
 // Email compose
 router.get('/email', (req, res) => {
   const sentEmails = EmailService.getSentEmails();
-  const playerCount = Players.count();
-  const emails = Players.getAllEmails();
-  res.render('admin/email-compose', { sentEmails, playerCount, emailCount: emails.length });
+  const distList = db.prepare('SELECT * FROM distribution_list ORDER BY clan, last_name, first_name').all();
+  const clans = [...new Set(distList.filter(d => d.clan).map(d => d.clan))].sort();
+  res.render('admin/email-compose', { sentEmails, distList, clans, emailCount: distList.length });
 });
 
 router.post('/email/send', express.urlencoded({ extended: true }), async (req, res) => {
   const { subject, body } = req.body;
-  const recipients = Players.getAllEmails();
+  const recipients = db.prepare('SELECT email FROM distribution_list').all().map(r => r.email);
   if (recipients.length === 0) {
     return res.redirect('/admin/email');
   }
   const sent = await EmailService.sendBulk(recipients, subject, body);
+  res.redirect('/admin/email');
+});
+
+// Distribution list management
+router.post('/email/add-contact', express.urlencoded({ extended: true }), (req, res) => {
+  const { first_name, last_name, email, clan } = req.body;
+  if (!email) return res.redirect('/admin/email');
+  try {
+    db.prepare('INSERT INTO distribution_list (first_name, last_name, email, clan) VALUES (?, ?, ?, ?)')
+      .run(first_name || null, last_name || null, email, clan || null);
+  } catch (err) {
+    console.error('[Admin] Error adding contact:', err.message);
+  }
+  res.redirect('/admin/email');
+});
+
+router.post('/email/contact/:id/delete', (req, res) => {
+  db.prepare('DELETE FROM distribution_list WHERE id = ?').run(req.params.id);
   res.redirect('/admin/email');
 });
 

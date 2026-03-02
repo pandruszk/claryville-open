@@ -120,6 +120,15 @@ db.exec(`
     added_from_suggestion INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS distribution_list (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name TEXT,
+    last_name TEXT,
+    email TEXT NOT NULL UNIQUE,
+    clan TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 // Seed default settings if empty
@@ -149,6 +158,74 @@ if (galleryCount.c === 0) {
   insertGallery.run('IMG_2020.jpg', 'IMG_2020.jpg', 'photo', 'On the course', );
   insertGallery.run('IMG_4703.jpg', 'IMG_4703.jpg', 'photo', 'On the green');
   insertGallery.run('IMG_6812.mp4', 'IMG_6812.MOV', 'video', 'Claryville Open highlights');
+}
+
+// Seed distribution list if empty
+const distCount = db.prepare('SELECT COUNT(*) as c FROM distribution_list').get();
+if (distCount.c === 0) {
+  const insertDist = db.prepare(
+    'INSERT INTO distribution_list (first_name, last_name, email, clan) VALUES (?, ?, ?, ?)'
+  );
+  const contacts = [
+    ['Peter', 'Andruszkiewicz', 'petera191@gmail.com', 'Andruszkiewicz'],
+    ['Matt', 'Quinn', 'Mattq@kraftse.com', 'Quinn'],
+    ['Geoff', 'Walsh', 'geoff61@hvc.rr.com', 'Walsh'],
+    ['Tim', 'Allan', 'timothy.g.allan@gmail.com', 'Allan'],
+    ['Lisa', 'Guerrero', 'lguerrero333@gmail.com', 'Guerrero'],
+    ['Russell', 'Turner', 'turner25.rt@gmail.com', 'Turner'],
+    [null, null, 'menuadore@gmail.com', null],
+    ['Derek', 'Frome', 'defrome@gmail.com', 'Frome'],
+    ['Doug', 'Hamilton', 'doham97@yahoo.com', 'Hamilton'],
+    ['Eily', 'Andruszkiewicz Allan', 'eaa326@gmail.com', 'Andruszkiewicz'],
+    ['Danielle', 'Andruszkiewicz', 'Dannygirl10@gmail.com', 'Andruszkiewicz'],
+    ['Nicholas', 'Freeh', 'nicholasfreeh@gmail.com', 'Freeh'],
+    ['Judy', 'Hafner', 'judyhafner@yahoo.com', 'Hafner'],
+    ['Conor', 'Quinn', 'conorquinn22@gmail.com', 'Quinn'],
+    ['Jenny', 'Freeh', 'jsfreeh@gmail.com', 'Freeh'],
+    ['Mike', 'Schiffer', 'mikeschiffer37@gmail.com', 'Schiffer'],
+    ['John', 'Sopp', 'jsopp62@gmail.com', 'Sopp'],
+    ['Meaghan', 'Quinn', 'meaghan.quinn92@gmail.com', 'Quinn'],
+    ['Will', 'Breaden', 'will.breaden@gmail.com', 'Breaden'],
+    ['John', 'Quinn', 'JJQuinn62@gmail.com', 'Quinn'],
+    ['Kelly', 'Jones', 'kjones@segalco.com', 'Jones'],
+    ['Ellen', 'Quinn', 'ellensquinn@gmail.com', 'Quinn'],
+    ['Kathy', 'Schiffer', 'ktschiffer1124@gmail.com', 'Schiffer'],
+    ['Buff', 'Creek', 'buffcreek01@gmail.com', 'Creek'],
+    ['James', 'Caldwell', 'jamie.caldwell.ct@gmail.com', 'Caldwell'],
+    ['Jerry', 'Huncosky', 'gsh1958@gmail.com', 'Huncosky'],
+    ['Andrew', 'Hafner', 'andrewhafner@optonline.net', 'Hafner'],
+    ['Pete', 'Andruszkiewicz', 'pandruszk@gmail.com', 'Andruszkiewicz'],
+    ['Andrew', 'Schiffer', 'ajs9113@gmail.com', 'Schiffer'],
+    ['Bobby', 'Poillucci', 'bpoillucci@gmail.com', 'Poillucci'],
+    ['Scott', 'Wellington', 'well1369@bellsouth.net', 'Wellington'],
+    ['Pat', 'Jones', 'patjones310@gmail.com', 'Jones'],
+    ['Peter', 'Sayadoff', 'PSayadoff@uniland.com', 'Sayadoff'],
+    ['Les', 'Brehm', 'lbrehm12@gmail.com', 'Brehm'],
+    ['Bob', 'Quackenbush', 'bobquackenbush@gmail.com', 'Quackenbush'],
+    ['Evan', 'Flanagan', 'indgaco@ptd.net', 'Flanagan'],
+    ['Keith', 'Zanetti', 'kzsercen@hotmail.com', 'Zanetti'],
+    ['Bob', 'Quackenbush', 'randmquack@verizon.net', 'Quackenbush'],
+    ['Brad', 'Jones', 'brad.s.jones24@gmail.com', 'Jones'],
+    ['Doug', 'Harlow', 'harlowdj@yahoo.com', 'Harlow'],
+    ['Riel', 'Peerbooms', 'rpeerbooms@frostvalley.org', 'Peerbooms'],
+    ['Bob', 'Eddings', 'beddings@frostvalley.org', 'Eddings'],
+    ['Dan', 'Quinn', 'danquinn66@yahoo.com', 'Quinn'],
+    ['Julie', 'Climer', 'julieclimer@hotmail.com', 'Climer'],
+    ['Grace', 'Andruszkiewicz', 'graceandruszkiewicz@gmail.com', 'Andruszkiewicz'],
+    ['Pat', 'Wellington', 'DPWELLI@aol.com', 'Wellington'],
+    ['Vince', 'Freeh', 'vwfreeh@gmail.com', 'Freeh'],
+    ['Thom', 'Reeves', 'cartercreagh1@gmail.com', 'Reeves'],
+    ['Therese', 'Brehm', 'tbrehm86@gmail.com', 'Brehm'],
+    ['Gordy', 'Jones', 'GJones@gryphongroup.us', 'Jones'],
+    ['Molly', 'Andruszkiewicz Frome', 'mollyafrome@gmail.com', 'Andruszkiewicz'],
+    ['Pat', 'Quinn', 'patrick.quinn6492@gmail.com', 'Quinn'],
+  ];
+  const seedDist = db.transaction(() => {
+    for (const [first, last, email, clan] of contacts) {
+      insertDist.run(first, last, email, clan);
+    }
+  });
+  seedDist();
 }
 
 module.exports = db;
