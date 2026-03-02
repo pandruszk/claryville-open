@@ -129,6 +129,13 @@ db.exec(`
     clan TEXT,
     created_at TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS past_winners (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    year INTEGER NOT NULL,
+    team_display TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
 `);
 
 // Seed default settings if empty
@@ -226,6 +233,42 @@ if (distCount.c === 0) {
     }
   });
   seedDist();
+}
+
+// Seed past winners if empty
+const winnersCount = db.prepare('SELECT COUNT(*) as c FROM past_winners').get();
+if (winnersCount.c === 0) {
+  const insertWinner = db.prepare('INSERT INTO past_winners (year, team_display) VALUES (?, ?)');
+  const winners = [
+    [1993, 'Mary & Kelly Jones, Dani Jones, Gordy "3 Wood" Jones'],
+    [1995, 'Molly & Derek'],
+    [1996, 'Mary & Kelly Jones, Danielle & Peter Andruszkiewicz'],
+    [1997, 'Dani Jones, Steven Hafner, Judy Hafner, Sopp'],
+    [1998, 'Lisa G. & Little Pete'],
+    [1999, 'Matt Quinn, Dan Quinn, Brian Macchi & Dave'],
+    [2000, 'Margaret, Jim Schiffer'],
+    [2001, 'Dan Quinn, Brad'],
+    [2002, '& Deborah, Quackenbush, Karl, Vince Freeh'],
+    [2003, "Wellington's — Scott, Brian, Ken, John Jr."],
+    [2004, 'Quackenbush, Kevin Cloonan'],
+    [2004, 'Wellington — Scott, Kenny, John Jr.'],
+    [2005, 'Gordy Jones, R. Robbins, Peter Andruszkiewicz'],
+    [2006, 'Duke, Kenny & John Wellington, Dave Springman'],
+    [2007, 'Dan Quinn, Mitch Marcotte, Mike Zagars, Andy Purtell'],
+    [2008, 'Kelly & Mary Jones, Peter & Danielle Andruszkiewicz'],
+    [2009, 'Judy Hafner, Jon Sopp, Dino Campbell, Jennifer Grimes'],
+    [2010, 'Dan Quinn, Mary, Jon, R. & Danielle Andruszkiewicz'],
+    [2011, 'John Scurlock, Anthony Mascolo'],
+    [2013, 'Mary & Kelly Jones, Danielle & Peter Andruszkiewicz'],
+    [2015, 'Peter Andruszkiewicz, Lisa Guerrero, John and Kate Scurlock'],
+    [2022, 'Gordy "3 Wood" Jones, Lisa G. & Little Pete'],
+    [2024, 'Thom Reeves, Grace, Danielle, and Big Pete A.'],
+    [2025, 'Little Pete A., Danimal A., Big Pete A.'],
+  ];
+  const seedWinners = db.transaction(() => {
+    for (const [year, team] of winners) insertWinner.run(year, team);
+  });
+  seedWinners();
 }
 
 module.exports = db;

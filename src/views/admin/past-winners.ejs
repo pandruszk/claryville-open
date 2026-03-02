@@ -1,0 +1,94 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Past Winners</h1>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/groups">Groups</a>
+  <a href="/admin/inbox">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/contacts">Contacts</a>
+  <a href="/admin/scores">Scores</a>
+  <a href="/admin/gallery">Gallery</a>
+  <a href="/admin/rules-suggestions">Rules</a>
+  <a href="/admin/past-winners" class="active">Winners</a>
+</nav>
+
+<section class="admin-section">
+  <h2>Add New Winner</h2>
+  <form method="POST" action="/admin/past-winners/add" class="form" style="display:flex;gap:0.75rem;align-items:flex-end;flex-wrap:wrap">
+    <div class="form-group" style="width:5rem">
+      <label>Year</label>
+      <input type="number" name="year" min="1990" max="2099" required>
+    </div>
+    <div class="form-group" style="flex:1;min-width:200px">
+      <label>Team / Players</label>
+      <input type="text" name="team_display" placeholder="e.g. Dan Quinn, Kelly Jones, Lisa G." required>
+    </div>
+    <button type="submit" class="btn btn-primary">Add Winner</button>
+  </form>
+</section>
+
+<section class="admin-section">
+  <h2>All Past Winners (<%= winners.length %>)</h2>
+  <% if (winners.length === 0) { %>
+    <div class="alert alert-info">No past winners recorded yet.</div>
+  <% } else { %>
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th style="width:5rem">Year</th>
+          <th>Team</th>
+          <th>Matched Contacts</th>
+          <th style="width:10rem">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const w of winners) { %>
+          <tr>
+            <td><strong><%= w.year %></strong></td>
+            <td>
+              <span class="winner-team-text" id="team-text-<%= w.id %>"><%= w.team_display %></span>
+              <form method="POST" action="/admin/past-winners/<%= w.id %>/edit" class="winner-edit-form" id="edit-form-<%= w.id %>" style="display:none;gap:0.5rem;align-items:center">
+                <input type="number" name="year" value="<%= w.year %>" style="width:5rem" min="1990" max="2099">
+                <input type="text" name="team_display" value="<%= w.team_display %>" style="flex:1">
+                <button type="submit" class="btn btn-small btn-primary">Save</button>
+                <button type="button" class="btn btn-small" onclick="cancelEdit(<%= w.id %>)">Cancel</button>
+              </form>
+            </td>
+            <td>
+              <% if (w.matchedContacts.length > 0) { %>
+                <div class="matched-contacts">
+                  <% for (const c of w.matchedContacts) { %>
+                    <span class="badge badge-contact"><%= c.first_name %> <%= c.last_name %><% if (c.clan) { %> <span class="clan-tag">(<%= c.clan %>)</span><% } %></span>
+                  <% } %>
+                </div>
+              <% } else { %>
+                <span class="form-hint">No matches</span>
+              <% } %>
+            </td>
+            <td class="actions">
+              <button type="button" class="btn btn-small" onclick="startEdit(<%= w.id %>)">Edit</button>
+              <form method="POST" action="/admin/past-winners/<%= w.id %>/delete" class="form-inline" onsubmit="return confirm('Delete this entry?')">
+                <button type="submit" class="btn btn-small btn-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  <% } %>
+</section>
+
+<script>
+function startEdit(id) {
+  document.getElementById('team-text-' + id).style.display = 'none';
+  const form = document.getElementById('edit-form-' + id);
+  form.style.display = 'flex';
+}
+function cancelEdit(id) {
+  document.getElementById('team-text-' + id).style.display = '';
+  document.getElementById('edit-form-' + id).style.display = 'none';
+}
+</script>

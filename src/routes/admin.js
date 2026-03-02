@@ -389,6 +389,66 @@ router.post('/gallery/:id/delete', (req, res) => {
   res.redirect('/admin/gallery');
 });
 
+// Past Winners
+router.get('/past-winners', (req, res) => {
+  const winners = db.prepare('SELECT * FROM past_winners ORDER BY year DESC, id DESC').all();
+  const contacts = db.prepare('SELECT id, first_name, last_name, clan FROM distribution_list ORDER BY last_name, first_name').all();
+
+  // Match contacts to each winner entry
+  for (const w of winners) {
+    w.matchedContacts = [];
+    for (const c of contacts) {
+      if (!c.first_name && !c.last_name) continue;
+      const full = ((c.first_name || '') + ' ' + (c.last_name || '')).trim();
+      const last = c.last_name || '';
+      const first = c.first_name || '';
+      const team = w.team_display.toLowerCase();
+
+      // Try full name match first
+      if (full && team.includes(full.toLowerCase())) {
+        w.matchedContacts.push(c);
+      }
+      // Try last name match for single-name references (e.g., "Quackenbush", "Sopp")
+      else if (last.length > 3 && team.includes(last.toLowerCase())) {
+        // Verify it's a standalone mention, not part of another word
+        const re = new RegExp('\\b' + last.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
+        if (re.test(w.team_display)) {
+          w.matchedContacts.push(c);
+        }
+      }
+    }
+    // Deduplicate
+    const seen = new Set();
+    w.matchedContacts = w.matchedContacts.filter(c => {
+      if (seen.has(c.id)) return false;
+      seen.add(c.id);
+      return true;
+    });
+  }
+
+  res.render('admin/past-winners', { winners, contacts });
+});
+
+router.post('/past-winners/add', express.urlencoded({ extended: true }), (req, res) => {
+  const { year, team_display } = req.body;
+  if (year && team_display) {
+    db.prepare('INSERT INTO past_winners (year, team_display) VALUES (?, ?)').run(parseInt(year), team_display.trim());
+  }
+  res.redirect('/admin/past-winners');
+});
+
+router.post('/past-winners/:id/edit', express.urlencoded({ extended: true }), (req, res) => {
+  const { year, team_display } = req.body;
+  db.prepare('UPDATE past_winners SET year = ?, team_display = ? WHERE id = ?')
+    .run(parseInt(year), team_display.trim(), req.params.id);
+  res.redirect('/admin/past-winners');
+});
+
+router.post('/past-winners/:id/delete', (req, res) => {
+  db.prepare('DELETE FROM past_winners WHERE id = ?').run(req.params.id);
+  res.redirect('/admin/past-winners');
+});
+
 function getSettings() {
   const rows = db.prepare('SELECT key, value FROM settings').all();
   const settings = {};

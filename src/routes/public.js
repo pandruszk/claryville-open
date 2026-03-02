@@ -51,7 +51,8 @@ router.get('/rules', (req, res) => {
 // Past Winners
 router.get('/past-winners', (req, res) => {
   const settings = getSettings();
-  res.render('past-winners', { settings, title: 'Past Winners' });
+  const winners = db.prepare('SELECT year, team_display FROM past_winners ORDER BY year ASC, id ASC').all();
+  res.render('past-winners', { settings, winners, title: 'Past Winners' });
 });
 
 // Register page
