@@ -66,18 +66,12 @@ img { max-width: 100%; }
   color: var(--white);
 }
 
-.brand-mark {
-  background: var(--gold);
-  color: var(--navy);
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 0.9rem;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--white);
+  object-fit: contain;
 }
 
 .brand-text {
@@ -948,6 +942,15 @@ img { max-width: 100%; }
   margin: 0 auto;
   padding: 0 1.5rem;
   text-align: center;
+}
+
+.footer-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--white);
+  object-fit: contain;
+  margin-bottom: 1rem;
 }
 
 .footer-brand {
