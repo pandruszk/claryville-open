@@ -1,7 +1,7 @@
 const db = require('./db');
 
 const PLAYER_FIELDS = [
-  'name', 'email', 'age', 'gender', 'ghin_index', 'group_id',
+  'name', 'email', 'phone', 'age', 'gender', 'ghin_index', 'group_id',
   'is_military', 'never_played_course', 'heart_attack_stroke_tumor',
   'played_high_school_golf', 'played_college_golf', 'played_pga_lpga',
   'is_post_partum', 'only_plays_claryville',

@@ -19,6 +19,7 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     email TEXT,
+    phone TEXT,
     age INTEGER,
     gender TEXT CHECK(gender IN ('male', 'female')),
     ghin_index REAL,
@@ -126,6 +127,7 @@ db.exec(`
     first_name TEXT,
     last_name TEXT,
     email TEXT NOT NULL UNIQUE,
+    phone TEXT,
     clan TEXT,
     created_at TEXT DEFAULT (datetime('now'))
   );
@@ -144,6 +146,10 @@ db.exec(`
     contact_id INTEGER REFERENCES distribution_list(id) ON DELETE SET NULL
   );
 `);
+
+// Migrations — add columns to existing tables
+try { db.exec('ALTER TABLE players ADD COLUMN phone TEXT'); } catch (e) { /* already exists */ }
+try { db.exec('ALTER TABLE distribution_list ADD COLUMN phone TEXT'); } catch (e) { /* already exists */ }
 
 // Seed default settings if empty
 const settingsCount = db.prepare('SELECT COUNT(*) as c FROM settings').get();

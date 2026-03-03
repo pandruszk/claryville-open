@@ -85,6 +85,7 @@ router.post('/register', express.urlencoded({ extended: true }), async (req, res
       players.push({
         name,
         email: req.body[`p${i}_email`]?.trim() || null,
+        phone: req.body[`p${i}_phone`]?.trim() || null,
         age: req.body[`p${i}_age`] ? parseInt(req.body[`p${i}_age`]) : null,
         gender: req.body[`p${i}_gender`] || null,
         ghin_index: req.body[`p${i}_ghin`] ? parseFloat(req.body[`p${i}_ghin`]) : null,
@@ -128,8 +129,8 @@ router.post('/register', express.urlencoded({ extended: true }), async (req, res
       const firstName = nameParts[0] || null;
       const lastName = nameParts.slice(1).join(' ') || null;
       try {
-        db.prepare('INSERT OR IGNORE INTO distribution_list (first_name, last_name, email) VALUES (?, ?, ?)')
-          .run(firstName, lastName, p.email);
+        db.prepare('INSERT OR IGNORE INTO distribution_list (first_name, last_name, email, phone) VALUES (?, ?, ?, ?)')
+          .run(firstName, lastName, p.email, p.phone);
       } catch (err) { /* duplicate email, ignore */ }
     }
   }
