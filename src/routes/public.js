@@ -129,9 +129,13 @@ router.post('/register', express.urlencoded({ extended: true }), async (req, res
       const firstName = nameParts[0] || null;
       const lastName = nameParts.slice(1).join(' ') || null;
       try {
-        db.prepare('INSERT OR IGNORE INTO distribution_list (first_name, last_name, email, phone) VALUES (?, ?, ?, ?)')
+        db.prepare(`INSERT INTO distribution_list (first_name, last_name, email, phone) VALUES (?, ?, ?, ?)
+          ON CONFLICT(email) DO UPDATE SET
+            first_name = COALESCE(excluded.first_name, first_name),
+            last_name = COALESCE(excluded.last_name, last_name),
+            phone = COALESCE(excluded.phone, phone)`)
           .run(firstName, lastName, p.email, p.phone);
-      } catch (err) { /* duplicate email, ignore */ }
+      } catch (err) { /* ignore */ }
     }
   }
 
