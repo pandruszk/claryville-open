@@ -8,6 +8,17 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Mobile dropdown toggle
+  var dropdownToggle = document.querySelector('.nav-dropdown-toggle');
+  if (dropdownToggle) {
+    dropdownToggle.addEventListener('click', function (e) {
+      if (window.innerWidth <= 640) {
+        e.preventDefault();
+        dropdownToggle.parentElement.classList.toggle('open');
+      }
+    });
+  }
+
   // Hero slideshow
   var slides = document.querySelectorAll('.hero-slide');
   if (slides.length > 1) {
