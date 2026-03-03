@@ -1184,4 +1184,7 @@ img { max-width: 100%; }
   .history-stats { gap: 2rem; }
   .page-header { padding: 2rem 1rem; }
   .page-header h1 { font-size: 1.6rem; }
+  .photo-grid { grid-template-columns: 1fr; }
+  .photo-card img { height: 200px; }
+  .video-grid { grid-template-columns: 1fr; }
 }
