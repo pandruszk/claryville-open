@@ -61,6 +61,11 @@ IMPORTANT INSTRUCTIONS FOR SMS REPLIES:
     });
 
     const answer = msg.content[0]?.text || "Something went wrong. Visit claryvilleopen.com/questions instead.";
+
+    if (AutoReplyService.isUnanswered(answer)) {
+      AutoReplyService.logUnansweredQuestion(body, 'sms', answer);
+    }
+
     addToHistory(from, 'assistant', answer);
     return answer;
   } catch (err) {

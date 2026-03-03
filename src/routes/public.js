@@ -304,6 +304,12 @@ Ask these naturally in conversation, not as a big dump. Once you have the info f
     });
 
     const answer = msg.content[0]?.text || "Something went sideways. Email rulescommittee@claryvilleopen.com instead.";
+
+    if (AutoReplyService.isUnanswered(answer)) {
+      const userQuestion = chatMessages[chatMessages.length - 1].content;
+      AutoReplyService.logUnansweredQuestion(userQuestion, 'web', answer);
+    }
+
     res.json({ answer });
   } catch (err) {
     console.error('[Questions] AI error:', err.message);

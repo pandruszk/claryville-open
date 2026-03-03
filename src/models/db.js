@@ -122,6 +122,14 @@ db.exec(`
     created_at TEXT DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS unanswered_questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question TEXT NOT NULL,
+    channel TEXT NOT NULL CHECK(channel IN ('web', 'sms', 'email')),
+    ai_response TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS distribution_list (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name TEXT,

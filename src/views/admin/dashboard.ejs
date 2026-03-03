@@ -13,6 +13,7 @@
   <a href="/admin/scores">Scores</a>
   <a href="/admin/gallery">Gallery</a>
   <a href="/admin/rules-suggestions">Rules</a>
+  <a href="/admin/unanswered">Unanswered</a>
   <a href="/admin/past-winners">Winners</a>
 </nav>
 
@@ -36,6 +37,10 @@
   <div class="stat-card">
     <div class="stat-number"><%= draftStats.pending %></div>
     <div class="stat-label">Draft Replies (<%= draftStats.ruleSuggestions %> rule suggestions)</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-number"><%= unansweredCount %></div>
+    <div class="stat-label"><a href="/admin/unanswered">Unanswered Questions</a></div>
   </div>
 </div>
 

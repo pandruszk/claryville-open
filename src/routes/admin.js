@@ -49,9 +49,10 @@ router.get('/', (req, res) => {
   const donationCount = Donations.count();
   const emailStats = EmailService.getEmailStats();
   const draftStats = AutoReplyService.getStats();
+  const unansweredCount = AutoReplyService.getUnansweredCount();
   const settings = getSettings();
   res.render('admin/dashboard', {
-    playerCount, groupCount, donationTotal, donationCount, emailStats, draftStats, settings
+    playerCount, groupCount, donationTotal, donationCount, emailStats, draftStats, unansweredCount, settings
   });
 });
 
@@ -271,6 +272,27 @@ router.post('/rules-suggestions/:draftId/accept', express.urlencoded({ extended:
 router.post('/tournament-rules/:id/delete', (req, res) => {
   AutoReplyService.deleteTournamentRule(req.params.id);
   res.redirect('/admin/rules-suggestions');
+});
+
+// Unanswered questions
+router.get('/unanswered', (req, res) => {
+  const questions = AutoReplyService.getUnansweredQuestions();
+  res.render('admin/unanswered', { questions });
+});
+
+router.post('/unanswered/:id/add-rule', express.urlencoded({ extended: true }), (req, res) => {
+  const ruleText = req.body.rule_text;
+  const category = req.body.category || 'general';
+  if (ruleText) {
+    AutoReplyService.addTournamentRule(ruleText, category, 0);
+  }
+  AutoReplyService.deleteUnansweredQuestion(req.params.id);
+  res.redirect('/admin/unanswered');
+});
+
+router.post('/unanswered/:id/dismiss', (req, res) => {
+  AutoReplyService.deleteUnansweredQuestion(req.params.id);
+  res.redirect('/admin/unanswered');
 });
 
 // Email compose

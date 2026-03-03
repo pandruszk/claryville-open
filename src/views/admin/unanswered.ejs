@@ -1,0 +1,62 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Unanswered Questions</h1>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/groups">Groups</a>
+  <a href="/admin/inbox">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/contacts">Contacts</a>
+  <a href="/admin/scores">Scores</a>
+  <a href="/admin/gallery">Gallery</a>
+  <a href="/admin/rules-suggestions">Rules</a>
+  <a href="/admin/unanswered" class="active">Unanswered</a>
+  <a href="/admin/past-winners">Winners</a>
+</nav>
+
+<% if (questions.length > 0) { %>
+<section class="admin-section">
+  <p class="form-hint">Questions the AI couldn't answer. Add a rule to improve future responses, or dismiss if no action is needed.</p>
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Channel</th>
+        <th>Question</th>
+        <th>AI Response</th>
+        <th>Date</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% for (const q of questions) { %>
+        <tr>
+          <td><span class="badge badge-strokes"><%= q.channel %></span></td>
+          <td><%= q.question %></td>
+          <td><%= q.ai_response %></td>
+          <td><%= q.created_at %></td>
+          <td class="actions">
+            <form method="POST" action="/admin/unanswered/<%= q.id %>/add-rule" class="form-inline rule-accept-inline">
+              <input type="text" name="rule_text" placeholder="New rule text..." class="rule-text-input-sm">
+              <select name="category">
+                <option value="general">General</option>
+                <option value="format">Format</option>
+                <option value="strokes">Strokes</option>
+                <option value="tee_boxes">Tee Boxes</option>
+                <option value="prizes">Prizes</option>
+              </select>
+              <button type="submit" class="btn btn-small btn-accent">Add Rule</button>
+            </form>
+            <form method="POST" action="/admin/unanswered/<%= q.id %>/dismiss" class="form-inline">
+              <button type="submit" class="btn btn-small btn-danger">Dismiss</button>
+            </form>
+          </td>
+        </tr>
+      <% } %>
+    </tbody>
+  </table>
+</section>
+<% } else { %>
+  <div class="alert alert-info">No unanswered questions logged. The AI caddy is handling everything!</div>
+<% } %>

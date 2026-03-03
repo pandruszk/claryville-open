@@ -280,6 +280,37 @@ function deleteTournamentRule(id) {
   db.prepare('DELETE FROM tournament_rules WHERE id = ?').run(id);
 }
 
+// Unanswered questions
+
+const UNANSWERED_PHRASES = [
+  "i'm not sure about that one",
+  "not sure about that one",
+  "email rulescommittee@claryvilleopen.com",
+  "the rules committee can help",
+];
+
+function isUnanswered(response) {
+  const lower = response.toLowerCase();
+  return UNANSWERED_PHRASES.some(phrase => lower.includes(phrase));
+}
+
+function logUnansweredQuestion(question, channel, aiResponse) {
+  db.prepare('INSERT INTO unanswered_questions (question, channel, ai_response) VALUES (?, ?, ?)')
+    .run(question, channel, aiResponse);
+}
+
+function getUnansweredQuestions() {
+  return db.prepare('SELECT * FROM unanswered_questions ORDER BY created_at DESC').all();
+}
+
+function deleteUnansweredQuestion(id) {
+  db.prepare('DELETE FROM unanswered_questions WHERE id = ?').run(id);
+}
+
+function getUnansweredCount() {
+  return db.prepare('SELECT COUNT(*) as c FROM unanswered_questions').get().c;
+}
+
 module.exports = {
   buildTournamentContext,
   generateDraft,
@@ -296,4 +327,9 @@ module.exports = {
   addTournamentRule,
   getTournamentRules,
   deleteTournamentRule,
+  isUnanswered,
+  logUnansweredQuestion,
+  getUnansweredQuestions,
+  deleteUnansweredQuestion,
+  getUnansweredCount,
 };
