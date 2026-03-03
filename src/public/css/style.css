@@ -907,7 +907,7 @@ img { max-width: 100%; }
 .stat-number { font-size: 2rem; font-weight: 800; color: var(--navy); font-family: var(--font-display); }
 .stat-label { font-size: 0.8rem; color: var(--gray-500); margin-top: 0.25rem; }
 
-.admin-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.admin-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; max-width: 1200px; margin: 0 auto; }
 .admin-table th { text-align: left; padding: 0.5rem; border-bottom: 2px solid var(--gray-200); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gray-500); }
 .admin-table td { padding: 0.5rem; border-bottom: 1px solid var(--gray-100); }
 .admin-table .actions { display: flex; gap: 0.35rem; flex-wrap: wrap; }
