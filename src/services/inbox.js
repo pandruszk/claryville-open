@@ -137,6 +137,7 @@ const InboxService = {
   },
 
   delete(id) {
+    db.prepare('DELETE FROM draft_replies WHERE inbox_message_id = ?').run(id);
     db.prepare('DELETE FROM inbox_messages WHERE id = ?').run(id);
   },
 

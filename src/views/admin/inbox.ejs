@@ -27,14 +27,14 @@
 <% if (messages.length === 0) { %>
   <div class="alert alert-info">No incoming emails. Configure IMAP in your .env to start polling.</div>
 <% } else { %>
-  <table class="admin-table">
+  <table class="admin-table" style="table-layout:fixed;width:100%">
     <thead>
       <tr>
-        <th>Status</th>
-        <th>From</th>
-        <th>Subject</th>
-        <th>Received</th>
-        <th>AI Draft</th>
+        <th style="width:60px">Status</th>
+        <th style="width:22%">From</th>
+        <th style="width:22%">Subject</th>
+        <th style="width:80px">Received</th>
+        <th style="width:130px">AI Draft</th>
         <th>Actions</th>
       </tr>
     </thead>
@@ -42,8 +42,8 @@
       <% for (const msg of messages) { %>
         <tr class="<%= msg.processed ? 'processed' : 'unprocessed' %>">
           <td><span class="badge <%= msg.processed ? 'badge-complete' : 'badge-looking' %>"><%= msg.processed ? 'Done' : 'New' %></span></td>
-          <td><%= msg.from_addr %></td>
-          <td><%= msg.subject %></td>
+          <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<%= msg.from_addr %>"><%= msg.from_addr %></td>
+          <td style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="<%= msg.subject %>"><%= msg.subject %></td>
           <td><%= new Date(msg.received_at).toLocaleDateString() %></td>
           <td>
             <% if (msg.draft) { %>
