@@ -65,7 +65,10 @@
 
     <!-- AI Draft preview -->
     <section class="admin-section">
-      <h2>AI Draft Reply <span class="badge <%= draft.status === 'sent' ? 'badge-complete' : draft.status === 'dismissed' ? 'badge-dismissed' : 'badge-draft-pending' %>"><%= draft.status %></span></h2>
+      <h2>AI Draft Reply <span class="badge <%= draft.status === 'sent' ? 'badge-complete' : draft.status === 'dismissed' ? 'badge-dismissed' : 'badge-draft-pending' %>"><%= draft.status %></span><% if (draft.needs_review) { %> <span class="badge badge-needs-review">Needs Review</span><% } %></h2>
+      <% if (draft.needs_review) { %>
+        <div class="alert alert-warning" style="margin-bottom:1rem">The AI wasn't confident in this answer — it may have deflected or guessed. Please review carefully before sending.</div>
+      <% } %>
       <p class="form-hint">Subject: <strong><%= draft.draft_subject %></strong></p>
       <div class="draft-preview">
         <%- draft.edited_body || draft.draft_body %>

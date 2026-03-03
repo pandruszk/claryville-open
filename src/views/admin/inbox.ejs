@@ -20,6 +20,7 @@
 
 <div class="draft-stats-bar">
   <span class="draft-stat"><strong><%= draftStats.pending %></strong> pending drafts</span>
+  <span class="draft-stat"><strong><%= draftStats.needsReview %></strong> needs review</span>
   <span class="draft-stat"><strong><%= draftStats.ruleSuggestions %></strong> rule suggestions</span>
   <span class="draft-stat"><strong><%= draftStats.sent %></strong> sent</span>
 </div>
@@ -49,6 +50,9 @@
             <% if (msg.draft) { %>
               <% if (msg.draft.status === 'pending') { %>
                 <a href="/admin/inbox/<%= msg.id %>/draft" class="btn btn-small btn-primary">Review Draft</a>
+                <% if (msg.draft.needs_review) { %>
+                  <span class="badge badge-needs-review">Needs Review</span>
+                <% } %>
                 <% if (msg.draft.is_rule_suggestion) { %>
                   <span class="badge badge-rule">Rule Suggestion</span>
                 <% } %>

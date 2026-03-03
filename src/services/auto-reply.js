@@ -147,13 +147,15 @@ Instructions:
 4. For rule suggestions, acknowledge the suggestion warmly and let them know the Rules Committee will review it. Do NOT commit to accepting it.
 5. For general inquiries, answer as helpfully as possible using the tournament information above.
 6. Keep replies concise — 2-4 short paragraphs max.
+7. Set "confident" to false if you couldn't fully answer from the tournament info above — e.g., you had to deflect, suggest contacting the course, or say you're unsure. Set to true if you could answer directly.
 
 Respond ONLY with valid JSON (no markdown fencing):
 {
   "classification": "RULE_SUGGESTION" or "GENERAL_INQUIRY",
   "subject": "Re: <appropriate subject>",
   "body": "<html reply body>",
-  "suggestedRuleText": "<extracted rule text or null>"
+  "suggestedRuleText": "<extracted rule text or null>",
+  "confident": true or false
 }`;
 
   try {
@@ -174,6 +176,7 @@ Respond ONLY with valid JSON (no markdown fencing):
       body: parsed.body,
       isRuleSuggestion: parsed.classification === 'RULE_SUGGESTION' ? 1 : 0,
       suggestedRuleText: parsed.suggestedRuleText || null,
+      needsReview: parsed.confident === false ? 1 : 0,
     };
   } catch (err) {
     console.error('[AutoReply] Draft generation error:', err.message);
@@ -195,16 +198,16 @@ async function processNewMessages() {
   console.log(`[AutoReply] Processing ${messages.length} new message(s)`);
 
   const insertStmt = db.prepare(`
-    INSERT INTO draft_replies (inbox_message_id, draft_subject, draft_body, is_rule_suggestion, suggested_rule_text)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO draft_replies (inbox_message_id, draft_subject, draft_body, is_rule_suggestion, suggested_rule_text, needs_review)
+    VALUES (?, ?, ?, ?, ?, ?)
   `);
 
   for (const msg of messages) {
     try {
       const draft = await generateDraft(msg);
       if (draft) {
-        insertStmt.run(msg.id, draft.subject, draft.body, draft.isRuleSuggestion, draft.suggestedRuleText);
-        console.log(`[AutoReply] Draft created for message ${msg.id} (${draft.isRuleSuggestion ? 'rule suggestion' : 'general'})`);
+        insertStmt.run(msg.id, draft.subject, draft.body, draft.isRuleSuggestion, draft.suggestedRuleText, draft.needsReview);
+        console.log(`[AutoReply] Draft created for message ${msg.id} (${draft.isRuleSuggestion ? 'rule suggestion' : 'general'}${draft.needsReview ? ', needs review' : ''})`);
       }
     } catch (err) {
       console.error(`[AutoReply] Error processing message ${msg.id}:`, err.message);
@@ -261,8 +264,9 @@ function deleteDraft(id) {
 function getStats() {
   const pending = db.prepare("SELECT COUNT(*) as c FROM draft_replies WHERE status = 'pending'").get().c;
   const ruleSuggestions = db.prepare("SELECT COUNT(*) as c FROM draft_replies WHERE is_rule_suggestion = 1 AND status = 'pending'").get().c;
+  const needsReview = db.prepare("SELECT COUNT(*) as c FROM draft_replies WHERE needs_review = 1 AND status = 'pending'").get().c;
   const sent = db.prepare("SELECT COUNT(*) as c FROM draft_replies WHERE status = 'sent'").get().c;
-  return { pending, ruleSuggestions, sent };
+  return { pending, ruleSuggestions, needsReview, sent };
 }
 
 // Rule management

@@ -466,6 +466,7 @@ img { max-width: 100%; }
 .alert-success { background: #e8f5e9; color: #1b5e20; border: 1px solid #c8e6c9; }
 .alert-info { background: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
 .alert-error { background: #ffebee; color: #b71c1c; border: 1px solid #ffcdd2; }
+.alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; padding: .75rem 1rem; border-radius: var(--radius); }
 
 /* === Forms === */
 .form { max-width: 700px; }
@@ -955,6 +956,7 @@ img { max-width: 100%; }
 
 /* Draft badges */
 .badge-rule { background: #fef3c7; color: #92400e; }
+.badge-needs-review { background: #fee2e2; color: #991b1b; }
 .badge-draft-pending { background: #e8eaf6; color: var(--navy); }
 .badge-dismissed { background: var(--gray-200); color: var(--gray-600); }
 .badge-nodraft { background: var(--gray-100); color: var(--gray-500); }

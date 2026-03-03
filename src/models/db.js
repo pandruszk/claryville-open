@@ -110,6 +110,7 @@ db.exec(`
     suggested_rule_text TEXT,
     status TEXT DEFAULT 'pending',
     edited_body TEXT,
+    needs_review INTEGER DEFAULT 0,
     created_at TEXT DEFAULT (datetime('now')),
     sent_at TEXT
   );
@@ -150,6 +151,7 @@ db.exec(`
 // Migrations — add columns to existing tables
 try { db.exec('ALTER TABLE players ADD COLUMN phone TEXT'); } catch (e) { /* already exists */ }
 try { db.exec('ALTER TABLE distribution_list ADD COLUMN phone TEXT'); } catch (e) { /* already exists */ }
+try { db.exec('ALTER TABLE draft_replies ADD COLUMN needs_review INTEGER DEFAULT 0'); } catch (e) { /* already exists */ }
 
 // Seed default settings if empty
 const settingsCount = db.prepare('SELECT COUNT(*) as c FROM settings').get();
