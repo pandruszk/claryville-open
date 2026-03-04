@@ -241,6 +241,12 @@ router.post('/gallery/upload', upload.single('file'), (req, res) => {
   res.redirect('/gallery?success=1');
 });
 
+// Privacy policy
+router.get('/privacy', (req, res) => {
+  const settings = getSettings();
+  res.render('privacy', { settings, title: 'Privacy Policy' });
+});
+
 // Questions page
 router.get('/questions', (req, res) => {
   const settings = getSettings();

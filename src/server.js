@@ -70,8 +70,10 @@ app.post('/webhook/sms', express.json(), async (req, res) => {
   try {
     const SmsService = require('./services/sms');
     const answer = await SmsService.handleIncoming(from, body);
-    console.log(`[SMS] Replying to ${from}: ${answer.slice(0, 80)}...`);
-    await SmsService.sendReply(from, answer);
+    if (answer) {
+      console.log(`[SMS] Replying to ${from}: ${answer.slice(0, 80)}...`);
+      await SmsService.sendReply(from, answer);
+    }
   } catch (err) {
     console.error('[SMS] Error:', err.message);
   }
