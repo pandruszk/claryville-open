@@ -66,7 +66,7 @@ router.get('/register', (req, res) => {
   if (settings.registration_open !== 'true') {
     return res.render('register', { settings, closed: true, title: 'Register' });
   }
-  res.render('register', { settings, closed: false, success: req.query.success, title: 'Register' });
+  res.render('register', { settings, closed: false, success: req.query.success, error: null, title: 'Register' });
 });
 
 // Register submit
@@ -104,6 +104,22 @@ router.post('/register', express.urlencoded({ extended: true }), async (req, res
 
   if (players.length === 0) {
     return res.redirect('/register');
+  }
+
+  // Check for duplicate registrations by email
+  const dupes = [];
+  for (const p of players) {
+    if (p.email) {
+      const existing = db.prepare(
+        "SELECT p.name, g.name as group_name FROM players p JOIN groups g ON p.group_id = g.id WHERE lower(p.email) = lower(?)"
+      ).get(p.email);
+      if (existing) {
+        dupes.push(p.name + ' (' + p.email + ') is already registered with ' + existing.group_name);
+      }
+    }
+  }
+  if (dupes.length > 0) {
+    return res.render('register', { settings, closed: false, title: 'Register', error: dupes.join('. ') + '.' });
   }
 
   // Create group

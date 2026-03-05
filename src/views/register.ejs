@@ -9,6 +9,10 @@
   <div class="alert alert-info">Registration is currently closed. Check back soon!</div>
 <% } else { %>
 
+  <% if (error) { %>
+    <div class="alert alert-error"><%= error %></div>
+  <% } %>
+
   <% if (success) { %>
     <div class="alert alert-success">You're registered! Check your email for confirmation. View the <a href="/groups">groups page</a> to see your team.</div>
   <% } %>
