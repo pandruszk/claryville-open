@@ -80,6 +80,16 @@ PRIZES:
 - Longest Drive (Male & Female)
 - Tiebreaker: reverse scorecard comparison from 18th hole
 
+COURSE INFO — LOCHMOR GOLF COURSE:
+- Address: 586 Loch Sheldrake Rd, Loch Sheldrake, NY 12759
+- Phone: (845) 434-1257
+- 18-hole public course in the Catskills, Sullivan County
+- Golf carts available
+- Driving range on site
+- Clubhouse has lunch and beers for sale
+- Club rentals available — recommend calling ahead to reserve: (845) 434-1257
+- If someone asks about the course, directions, food, carts, or rentals, share this info
+
 WEBSITE: https://claryvilleopen.com
 REGISTER: https://claryvilleopen.com/register
 RULES: https://claryvilleopen.com/rules`;
