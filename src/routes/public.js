@@ -119,7 +119,7 @@ router.post('/register', express.urlencoded({ extended: true }), async (req, res
     }
   }
   if (dupes.length > 0) {
-    return res.render('register', { settings, closed: false, title: 'Register', error: dupes.join('. ') + '.' });
+    return res.render('register', { settings, closed: false, success: false, title: 'Register', error: dupes.join('. ') + '.' });
   }
 
   // Create group
