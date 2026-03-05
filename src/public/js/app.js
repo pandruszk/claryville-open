@@ -19,6 +19,30 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Registration email auto-fill
+  var emailFields = document.querySelectorAll('.contact-email');
+  emailFields.forEach(function (field) {
+    field.addEventListener('blur', function () {
+      var email = field.value.trim();
+      if (!email) return;
+      var i = field.dataset.player;
+      var nameField = document.getElementById('p' + i + '_name');
+      var phoneField = document.getElementById('p' + i + '_phone');
+
+      fetch('/api/lookup-contact?email=' + encodeURIComponent(email))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.found) {
+            if (nameField && !nameField.value) nameField.value = data.name;
+            if (phoneField && !phoneField.value) phoneField.value = data.phone;
+            field.style.borderColor = '#22c55e';
+            setTimeout(function () { field.style.borderColor = ''; }, 2000);
+          }
+        })
+        .catch(function () {});
+    });
+  });
+
   // Hero slideshow
   var slides = document.querySelectorAll('.hero-slide');
   if (slides.length > 1) {

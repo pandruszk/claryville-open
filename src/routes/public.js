@@ -317,6 +317,33 @@ Ask these naturally in conversation, not as a big dump. Once you have the info f
   }
 });
 
+// Contact lookup by email (for registration auto-fill)
+router.get('/api/lookup-contact', (req, res) => {
+  const email = req.query.email?.trim().toLowerCase();
+  if (!email) return res.json({ found: false });
+
+  // Check distribution list first
+  const contact = db.prepare(
+    'SELECT first_name, last_name, phone FROM distribution_list WHERE lower(email) = ?'
+  ).get(email);
+
+  if (contact && (contact.first_name || contact.last_name)) {
+    const name = [contact.first_name, contact.last_name].filter(Boolean).join(' ');
+    return res.json({ found: true, name, phone: contact.phone || '' });
+  }
+
+  // Fall back to players table (returning players from previous registrations)
+  const player = db.prepare(
+    'SELECT name, phone FROM players WHERE lower(email) = ? ORDER BY id DESC LIMIT 1'
+  ).get(email);
+
+  if (player) {
+    return res.json({ found: true, name: player.name, phone: player.phone || '' });
+  }
+
+  res.json({ found: false });
+});
+
 // Footer email signup
 router.post('/subscribe', express.urlencoded({ extended: true }), (req, res) => {
   const email = req.body.email?.trim();

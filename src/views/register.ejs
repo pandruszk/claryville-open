@@ -25,12 +25,12 @@
 
         <div class="form-row">
           <div class="form-group">
-            <label for="p<%= i %>_name">Name<% if (i === 1) { %> *<% } %></label>
-            <input type="text" id="p<%= i %>_name" name="p<%= i %>_name" <% if (i === 1) { %>required<% } %>>
+            <label for="p<%= i %>_email">Email <span class="form-hint-inline">— enter to auto-fill</span></label>
+            <input type="email" id="p<%= i %>_email" name="p<%= i %>_email" class="contact-email" data-player="<%= i %>" autocomplete="email">
           </div>
           <div class="form-group">
-            <label for="p<%= i %>_email">Email</label>
-            <input type="email" id="p<%= i %>_email" name="p<%= i %>_email">
+            <label for="p<%= i %>_name">Name<% if (i === 1) { %> *<% } %></label>
+            <input type="text" id="p<%= i %>_name" name="p<%= i %>_name" <% if (i === 1) { %>required<% } %>>
           </div>
           <div class="form-group">
             <label for="p<%= i %>_phone">Cell Phone</label>
