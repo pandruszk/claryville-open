@@ -3,10 +3,49 @@
   <h1>Leaderboard</h1>
 </div>
 
+<%
+  function calcTeeTime(order, startTime, interval) {
+    // Parse start time like "8:00 AM"
+    var match = (startTime || '8:00 AM').match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return '';
+    var h = parseInt(match[1]);
+    var m = parseInt(match[2]);
+    var ampm = match[3].toUpperCase();
+    if (ampm === 'PM' && h !== 12) h += 12;
+    if (ampm === 'AM' && h === 12) h = 0;
+    var totalMin = h * 60 + m + (order * parseInt(interval || 7));
+    var newH = Math.floor(totalMin / 60) % 24;
+    var newM = totalMin % 60;
+    var suffix = newH >= 12 ? 'PM' : 'AM';
+    var dispH = newH % 12 || 12;
+    return dispH + ':' + (newM < 10 ? '0' : '') + newM + ' ' + suffix;
+  }
+%>
+
 <div class="page-content">
-<% if (!published) { %>
+<% if (!published && teeSheetPublished && teeSheet.length > 0) { %>
+  <h2 class="section-title">Tee Times</h2>
+  <table class="leaderboard-table" style="margin-bottom:2rem">
+    <thead>
+      <tr>
+        <th>Tee Time</th>
+        <th>Team</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% teeSheet.forEach(function(g, i) { %>
+        <tr>
+          <td><%= calcTeeTime(i, settings.tee_start_time, settings.tee_interval) %></td>
+          <td><%= g.name %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+<% } else if (!published) { %>
   <div class="alert alert-info">Results will be posted after the tournament. Check back soon!</div>
-<% } else { %>
+<% } %>
+
+<% if (published) { %>
 
   <% if (netLeaderboard.length === 0) { %>
     <div class="alert alert-info">No scores entered yet.</div>
@@ -75,10 +114,15 @@
       </div>
     <% } %>
 
+    <% const showTee = teeSheetPublished && teeSheet.length > 0; %>
+    <% /* Build a map of group tee_order → index for time calc */ %>
+    <% const teeOrderMap = {}; if (showTee) { teeSheet.forEach(function(g, i) { teeOrderMap[g.id] = i; }); } %>
+
     <h2 class="section-title">Net Scores</h2>
     <table class="leaderboard-table">
       <thead>
         <tr>
+          <% if (showTee) { %><th>Tee Time</th><% } %>
           <th>Pos</th>
           <th>Team</th>
           <th>Front 9</th>
@@ -93,6 +137,7 @@
           <% const front = (s.hole_1||0)+(s.hole_2||0)+(s.hole_3||0)+(s.hole_4||0)+(s.hole_5||0)+(s.hole_6||0)+(s.hole_7||0)+(s.hole_8||0)+(s.hole_9||0); %>
           <% const back = (s.hole_10||0)+(s.hole_11||0)+(s.hole_12||0)+(s.hole_13||0)+(s.hole_14||0)+(s.hole_15||0)+(s.hole_16||0)+(s.hole_17||0)+(s.hole_18||0); %>
           <tr<% if (i === 0) { %> class="leader"<% } %>>
+            <% if (showTee) { %><td><%= teeOrderMap[s.group_id] != null ? calcTeeTime(teeOrderMap[s.group_id], settings.tee_start_time, settings.tee_interval) : '' %></td><% } %>
             <td><%= i + 1 %></td>
             <td><%= s.group_name %></td>
             <td><%= front %></td>
@@ -109,6 +154,7 @@
     <table class="leaderboard-table">
       <thead>
         <tr>
+          <% if (showTee) { %><th>Tee Time</th><% } %>
           <th>Pos</th>
           <th>Team</th>
           <th>Front 9</th>
@@ -121,6 +167,7 @@
           <% const front = (s.hole_1||0)+(s.hole_2||0)+(s.hole_3||0)+(s.hole_4||0)+(s.hole_5||0)+(s.hole_6||0)+(s.hole_7||0)+(s.hole_8||0)+(s.hole_9||0); %>
           <% const back = (s.hole_10||0)+(s.hole_11||0)+(s.hole_12||0)+(s.hole_13||0)+(s.hole_14||0)+(s.hole_15||0)+(s.hole_16||0)+(s.hole_17||0)+(s.hole_18||0); %>
           <tr<% if (i === 0) { %> class="leader"<% } %>>
+            <% if (showTee) { %><td><%= teeOrderMap[s.group_id] != null ? calcTeeTime(teeOrderMap[s.group_id], settings.tee_start_time, settings.tee_interval) : '' %></td><% } %>
             <td><%= i + 1 %></td>
             <td><%= s.group_name %></td>
             <td><%= front %></td>

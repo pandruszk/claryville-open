@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const fs = require('fs');
 const path = require('path');
+const multer = require('multer');
 const db = require('../models/db');
 const Players = require('../models/players');
 const Groups = require('../models/groups');
@@ -12,6 +13,10 @@ const EmailService = require('../services/email');
 const InboxService = require('../services/inbox');
 const AutoReplyService = require('../services/auto-reply');
 const { calculateTeamStrokes, getTeeBox, TEE_COLORS } = require('../services/handicap');
+const { extractScores } = require('../services/scorecard-ocr');
+
+// Multer for temp scorecard uploads
+const ocrUpload = multer({ dest: path.join(__dirname, '../../data/tmp') });
 
 // Auth middleware
 function requireAuth(req, res, next) {
@@ -57,7 +62,7 @@ router.get('/', (req, res) => {
 
 // Settings
 router.post('/settings', express.urlencoded({ extended: true }), (req, res) => {
-  const allowed = ['tournament_name', 'tournament_year', 'tournament_date', 'course_name', 'registration_open', 'results_published'];
+  const allowed = ['tournament_name', 'tournament_year', 'tournament_date', 'course_name', 'registration_open', 'results_published', 'tee_sheet_published'];
   const stmt = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
   const txn = db.transaction(() => {
     for (const key of allowed) {
@@ -67,6 +72,7 @@ router.post('/settings', express.urlencoded({ extended: true }), (req, res) => {
     }
     if (!req.body.registration_open) stmt.run('registration_open', 'false');
     if (!req.body.results_published) stmt.run('results_published', 'false');
+    if (!req.body.tee_sheet_published) stmt.run('tee_sheet_published', 'false');
   });
   txn();
   res.redirect('/admin');
@@ -332,7 +338,29 @@ router.get('/scores', (req, res) => {
     if (score) allScores[g.id] = score;
   }
   const contests = Scores.getContests();
-  res.render('admin/scores', { groups, allScores, contests });
+  const settings = getSettings();
+  res.render('admin/scores', { groups, allScores, contests, settings });
+});
+
+// Tee order — save drag-and-drop ordering
+router.post('/tee-order', express.json(), (req, res) => {
+  const order = req.body.order; // [{id, position}]
+  if (!Array.isArray(order)) return res.status(400).json({ error: 'Invalid order' });
+  const txn = db.transaction(() => {
+    for (const item of order) {
+      Groups.setTeeOrder(parseInt(item.id), parseInt(item.position));
+    }
+  });
+  txn();
+  res.json({ ok: true });
+});
+
+// Tee settings — save start time + interval (dedicated route)
+router.post('/tee-settings', express.urlencoded({ extended: true }), (req, res) => {
+  const stmt = db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)');
+  if (req.body.tee_start_time) stmt.run('tee_start_time', req.body.tee_start_time);
+  if (req.body.tee_interval) stmt.run('tee_interval', req.body.tee_interval);
+  res.redirect('/admin/scores');
 });
 
 router.post('/scores/:groupId', express.urlencoded({ extended: true }), (req, res) => {
@@ -361,6 +389,21 @@ router.post('/contests', express.urlencoded({ extended: true }), (req, res) => {
     }
   }
   res.redirect('/admin/scores');
+});
+
+// OCR scorecard scan
+router.post('/scores/:groupId/ocr', ocrUpload.single('scorecard'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  try {
+    const result = await extractScores(req.file.path);
+    res.json(result);
+  } catch (err) {
+    console.error('[Admin] OCR error:', err.message);
+    res.status(500).json({ error: 'Failed to read scorecard: ' + err.message });
+  } finally {
+    // Clean up temp file
+    fs.unlink(req.file.path, () => {});
+  }
 });
 
 // Gallery management

@@ -153,6 +153,7 @@ try { db.exec('ALTER TABLE players ADD COLUMN phone TEXT'); } catch (e) { /* alr
 try { db.exec('ALTER TABLE distribution_list ADD COLUMN phone TEXT'); } catch (e) { /* already exists */ }
 try { db.exec('ALTER TABLE draft_replies ADD COLUMN needs_review INTEGER DEFAULT 0'); } catch (e) { /* already exists */ }
 try { db.exec('ALTER TABLE players ADD COLUMN display_name TEXT'); } catch (e) { /* already exists */ }
+try { db.exec('ALTER TABLE groups ADD COLUMN tee_order INTEGER'); } catch (e) { /* already exists */ }
 
 // Seed default settings if empty
 const settingsCount = db.prepare('SELECT COUNT(*) as c FROM settings').get();
@@ -171,6 +172,12 @@ if (settingsCount.c === 0) {
   });
   seedAll();
 }
+
+// Seed tee sheet settings (always INSERT OR IGNORE, safe to run repeatedly)
+const seedTeeSetting = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
+seedTeeSetting.run('tee_sheet_published', 'false');
+seedTeeSetting.run('tee_start_time', '8:00 AM');
+seedTeeSetting.run('tee_interval', '7');
 
 // Seed gallery with initial photos/video if empty
 const galleryCount = db.prepare('SELECT COUNT(*) as c FROM gallery').get();

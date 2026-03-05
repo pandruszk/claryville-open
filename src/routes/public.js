@@ -206,17 +206,22 @@ router.post('/donate/checkout', express.urlencoded({ extended: true }), async (r
 router.get('/leaderboard', (req, res) => {
   const settings = getSettings();
   const published = settings.results_published === 'true';
+  const teeSheetPublished = settings.tee_sheet_published === 'true';
   let netLeaderboard = [];
   let grossLeaderboard = [];
   let highNet = null;
   let contests = {};
+  let teeSheet = [];
   if (published) {
     netLeaderboard = Scores.getLeaderboardNet();
     grossLeaderboard = Scores.getLeaderboardGross();
     highNet = Scores.getHighNet();
     contests = Scores.getContests();
   }
-  res.render('leaderboard', { settings, published, netLeaderboard, grossLeaderboard, highNet, contests, title: 'Leaderboard' });
+  if (teeSheetPublished) {
+    teeSheet = Groups.getAllByTeeOrder();
+  }
+  res.render('leaderboard', { settings, published, netLeaderboard, grossLeaderboard, highNet, contests, teeSheetPublished, teeSheet, title: 'Leaderboard' });
 });
 
 // Gallery

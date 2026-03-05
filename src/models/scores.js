@@ -61,7 +61,7 @@ const Scores = {
 
   getLeaderboardNet() {
     const rows = db.prepare(`
-      SELECT s.*, g.name as group_name
+      SELECT s.*, g.name as group_name, g.tee_order
       FROM scores s JOIN groups g ON s.group_id = g.id
     `).all();
     return this._sortWithTiebreaker(rows, 'net_total');
@@ -69,7 +69,7 @@ const Scores = {
 
   getLeaderboardGross() {
     const rows = db.prepare(`
-      SELECT s.*, g.name as group_name
+      SELECT s.*, g.name as group_name, g.tee_order
       FROM scores s JOIN groups g ON s.group_id = g.id
     `).all();
     return this._sortWithTiebreaker(rows, 'gross_total');

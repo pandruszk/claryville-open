@@ -63,6 +63,14 @@ const Groups = {
   count() {
     return db.prepare('SELECT COUNT(*) as c FROM groups').get().c;
   },
+
+  setTeeOrder(id, order) {
+    db.prepare('UPDATE groups SET tee_order = ? WHERE id = ?').run(order, id);
+  },
+
+  getAllByTeeOrder() {
+    return db.prepare('SELECT * FROM groups WHERE tee_order IS NOT NULL ORDER BY tee_order ASC').all();
+  },
 };
 
 module.exports = Groups;

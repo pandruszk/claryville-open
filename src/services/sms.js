@@ -1,5 +1,6 @@
 const Anthropic = require('@anthropic-ai/sdk').default;
 const AutoReplyService = require('./auto-reply');
+const { handleScoreSms } = require('./score-sms');
 
 // In-memory conversation history per phone number (clears on restart)
 const conversations = new Map();
@@ -58,6 +59,17 @@ async function handleIncoming(from, body) {
     return null;
   }
 
+  // Score commands — SCORE or SCORECARD
+  if (/^SCORE(CARD)?\s/i.test(cmd)) {
+    try {
+      const scoreReply = handleScoreSms(from, body);
+      if (scoreReply) return scoreReply;
+    } catch (err) {
+      console.error('[SMS] Score error:', err.message);
+      return 'Error updating score. Try again or text HELP for format instructions.';
+    }
+  }
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return "The AI caddy is offline. Visit claryvilleopen.com/questions or email rulescommittee@claryvilleopen.com";
   }
@@ -78,7 +90,14 @@ IMPORTANT INSTRUCTIONS FOR SMS REPLIES:
 - If you don't know, say: "Not sure about that one. Visit claryvilleopen.com or email rulescommittee@claryvilleopen.com"
 - Never make up rules or info not in your context.
 - For stroke calculations, keep it brief but accurate. Ask follow-up questions if needed.
-- WEBSITE: claryvilleopen.com`;
+- WEBSITE: claryvilleopen.com
+
+LIVE SCORING VIA TEXT:
+- Players can text in scores during the tournament for live leaderboard updates.
+- Single hole: "SCORE 5 4" means hole 5, score of 4.
+- Full scorecard: "SCORECARD 4 3 5 4 3 5 4 3 4 5 4 3 5 4 3 5 4 3" — all 18 holes in order.
+- The player's phone must be registered with their team for it to work.
+- If someone asks about texting scores, explain these formats.`;
 
   try {
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });

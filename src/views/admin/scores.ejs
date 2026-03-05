@@ -15,6 +15,49 @@
   <a href="/admin/past-winners">Winners</a>
 </nav>
 
+<!-- Tee Sheet -->
+<div class="admin-section">
+  <h2>Tee Sheet</h2>
+  <div class="form-row" style="margin-bottom:1rem">
+    <div class="form-group" style="max-width:180px">
+      <label>Start Time</label>
+      <input type="text" id="tee-start-time" value="<%= settings.tee_start_time || '8:00 AM' %>" placeholder="8:00 AM">
+    </div>
+    <div class="form-group" style="max-width:140px">
+      <label>Interval (min)</label>
+      <input type="number" id="tee-interval" value="<%= settings.tee_interval || '7' %>" min="1" max="30">
+    </div>
+    <div class="form-group" style="align-self:flex-end">
+      <button type="button" class="btn btn-primary btn-small" onclick="saveTeeSettings()">Save Times</button>
+    </div>
+  </div>
+
+  <% const teeGroups = groups.filter(g => g.players.length > 0).sort((a, b) => {
+    if (a.tee_order != null && b.tee_order != null) return a.tee_order - b.tee_order;
+    if (a.tee_order != null) return -1;
+    if (b.tee_order != null) return 1;
+    return a.id - b.id;
+  }); %>
+
+  <div id="tee-order-list">
+    <% teeGroups.forEach((g, i) => { %>
+      <div class="tee-order-item" draggable="true" data-group-id="<%= g.id %>">
+        <span class="tee-drag-handle">&#9776;</span>
+        <span class="tee-order-pos"><%= i + 1 %>.</span>
+        <span class="tee-order-name"><%= g.name %></span>
+        <span class="tee-order-time" data-index="<%= i %>"></span>
+        <span class="tee-order-arrows">
+          <button type="button" class="btn btn-small" onclick="moveTeeOrder(this, -1)">&uarr;</button>
+          <button type="button" class="btn btn-small" onclick="moveTeeOrder(this, 1)">&darr;</button>
+        </span>
+      </div>
+    <% }); %>
+  </div>
+  <div style="margin-top:0.75rem">
+    <button type="button" class="btn btn-primary" onclick="saveTeeOrder()">Save Tee Order</button>
+  </div>
+</div>
+
 <!-- Contest Winners -->
 <div class="admin-section">
   <h2>Contest Winners</h2>
@@ -88,7 +131,7 @@
         </div>
       </details>
 
-      <form method="POST" action="/admin/scores/<%= group.id %>" class="form score-form">
+      <form method="POST" action="/admin/scores/<%= group.id %>" class="form score-form" id="score-form-<%= group.id %>">
         <div class="holes-grid">
           <div class="nine-holes">
             <strong>Front 9</strong>
@@ -113,7 +156,14 @@
             </div>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary">Save Scores</button>
+        <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+          <button type="submit" class="btn btn-primary">Save Scores</button>
+          <label class="btn btn-small btn-outline" style="cursor:pointer;margin:0">
+            Scan Scorecard Photo
+            <input type="file" accept="image/*" style="display:none" onchange="scanScorecard(this, <%= group.id %>)">
+          </label>
+          <span id="ocr-status-<%= group.id %>" class="form-hint" style="margin:0"></span>
+        </div>
       </form>
     </div>
   <% } %>
