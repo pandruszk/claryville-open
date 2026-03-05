@@ -152,6 +152,7 @@ db.exec(`
 try { db.exec('ALTER TABLE players ADD COLUMN phone TEXT'); } catch (e) { /* already exists */ }
 try { db.exec('ALTER TABLE distribution_list ADD COLUMN phone TEXT'); } catch (e) { /* already exists */ }
 try { db.exec('ALTER TABLE draft_replies ADD COLUMN needs_review INTEGER DEFAULT 0'); } catch (e) { /* already exists */ }
+try { db.exec('ALTER TABLE players ADD COLUMN display_name TEXT'); } catch (e) { /* already exists */ }
 
 // Seed default settings if empty
 const settingsCount = db.prepare('SELECT COUNT(*) as c FROM settings').get();

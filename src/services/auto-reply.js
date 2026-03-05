@@ -96,9 +96,9 @@ RULES: https://claryvilleopen.com/rules`;
   if (groups.length > 0) {
     context += '\n\nREGISTERED GROUPS & PLAYERS:';
     for (const g of groups) {
-      const players = db.prepare('SELECT name, age, gender, ghin_index FROM players WHERE group_id = ? ORDER BY id').all(g.id);
+      const players = db.prepare('SELECT name, display_name, age, gender, ghin_index FROM players WHERE group_id = ? ORDER BY id').all(g.id);
       const playerList = players.map(p => {
-        let desc = p.name;
+        let desc = p.display_name || p.name;
         const details = [];
         if (p.age) details.push(`age ${p.age}`);
         if (p.gender) details.push(p.gender);

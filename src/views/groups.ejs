@@ -23,7 +23,7 @@
             <% for (const p of group.players) { %>
               <li>
                 <span class="tee-dot" style="background:<%= p.teeColor %>"></span>
-                <%= p.name %>
+                <%= p.display_name || p.name %>
               </li>
             <% } %>
           </ul>
@@ -51,7 +51,7 @@
             <% for (const p of group.players) { %>
               <li>
                 <span class="tee-dot" style="background:<%= p.teeColor %>"></span>
-                <%= p.name %>
+                <%= p.display_name || p.name %>
               </li>
             <% } %>
           </ul>

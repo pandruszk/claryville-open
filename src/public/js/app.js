@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!email) return;
       var i = field.dataset.player;
       var nameField = document.getElementById('p' + i + '_name');
+      var displayField = document.getElementById('p' + i + '_display_name');
       var phoneField = document.getElementById('p' + i + '_phone');
 
       fetch('/api/lookup-contact?email=' + encodeURIComponent(email))
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(function (data) {
           if (data.found) {
             if (nameField && !nameField.value) nameField.value = data.name;
+            if (displayField && !displayField.value && data.display_name) displayField.value = data.display_name;
             if (phoneField && !phoneField.value) phoneField.value = data.phone;
             field.style.borderColor = '#22c55e';
             setTimeout(function () { field.style.borderColor = ''; }, 2000);

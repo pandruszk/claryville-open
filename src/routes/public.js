@@ -84,6 +84,7 @@ router.post('/register', express.urlencoded({ extended: true }), async (req, res
     if (name) {
       players.push({
         name,
+        display_name: req.body[`p${i}_display_name`]?.trim() || null,
         email: req.body[`p${i}_email`]?.trim() || null,
         phone: req.body[`p${i}_phone`]?.trim() || null,
         age: req.body[`p${i}_age`] ? parseInt(req.body[`p${i}_age`]) : null,
@@ -334,11 +335,11 @@ router.get('/api/lookup-contact', (req, res) => {
 
   // Fall back to players table (returning players from previous registrations)
   const player = db.prepare(
-    'SELECT name, phone FROM players WHERE lower(email) = ? ORDER BY id DESC LIMIT 1'
+    'SELECT name, display_name, phone FROM players WHERE lower(email) = ? ORDER BY id DESC LIMIT 1'
   ).get(email);
 
   if (player) {
-    return res.json({ found: true, name: player.name, phone: player.phone || '' });
+    return res.json({ found: true, name: player.name, display_name: player.display_name || '', phone: player.phone || '' });
   }
 
   res.json({ found: false });
