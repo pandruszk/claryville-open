@@ -18,7 +18,7 @@
 <section class="admin-section">
   <h2>Add New Year</h2>
   <form method="POST" action="/admin/past-winners/add" class="form">
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+    <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
     <div class="form-group" style="width:5rem;margin-bottom:0.75rem">
       <label>Year</label>
       <input type="number" name="year" min="1990" max="2099" required>
@@ -55,8 +55,8 @@
         <h3><%= w.year %></h3>
         <div class="actions">
           <button type="button" class="btn btn-small" onclick="startEdit(<%= w.id %>)">Edit</button>
-          <form method="POST" action="/admin/past-winners/<%= w.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+          <form method="POST" action="/admin/past-winners/<%= w.id %>/delete" class="form-inline" onsubmit="return confirm('Delete this year?')">
+            <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
             <button type="submit" class="btn btn-small btn-danger">Delete</button>
           </form>
         </div>
@@ -79,8 +79,8 @@
     </div>
 
     <!-- Edit mode -->
-    <form method="POST" action="/admin/past-winners/<%= w.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+    <form method="POST" action="/admin/past-winners/<%= w.id %>/edit" id="edit-<%= w.id %>" style="display:none">
+      <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
       <div class="form-group" style="width:5rem;margin-bottom:0.75rem">
         <label>Year</label>
         <input type="number" name="year" value="<%= w.year %>" min="1990" max="2099">

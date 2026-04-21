@@ -28,8 +28,8 @@
     <button class="btn btn-small" onclick="loadTemplate('recap')">Recap & Results</button>
   </div>
 
-  <form method="POST" action="/admin/email/send" class="form" onsubmit="return confirm('Send this email to all <%= emailCount %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+  <form method="POST" action="/admin/email/send" class="form" onsubmit="return confirm('Send this email to all <%= emailCount %> recipients?')">
+    <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
     <div class="form-group">
       <label for="subject">Subject</label>
       <input type="text" id="subject" name="subject" required>

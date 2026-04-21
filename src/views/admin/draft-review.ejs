@@ -33,8 +33,8 @@
   <% if (!draft) { %>
     <section class="admin-section">
       <div class="alert alert-info">No AI draft available for this message. The API may have been unavailable.</div>
-      <form method="POST" action="/admin/inbox/<%= message.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+      <form method="POST" action="/admin/inbox/<%= message.id %>/draft/regenerate">
+        <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
         <button type="submit" class="btn btn-primary">Generate Draft</button>
       </form>
     </section>
@@ -44,8 +44,8 @@
       <section class="admin-section rule-suggestion-callout">
         <h2>Rule Suggestion Detected</h2>
         <p class="suggested-rule-text">"<%= draft.suggested_rule_text %>"</p>
-        <form method="POST" action="/admin/rules-suggestions/<%= draft.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+        <form method="POST" action="/admin/rules-suggestions/<%= draft.id %>/accept" class="rule-accept-form">
+          <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
           <div class="form-group">
             <label>Rule Text (editable)</label>
             <input type="text" name="rule_text" value="<%= draft.suggested_rule_text %>" class="rule-text-input">
@@ -81,8 +81,8 @@
       <!-- Edit form -->
       <section class="admin-section">
         <h2>Edit Draft</h2>
-        <form method="POST" action="/admin/inbox/<%= message.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+        <form method="POST" action="/admin/inbox/<%= message.id %>/draft/edit">
+          <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
           <div class="form-group">
             <label>Reply Body (HTML)</label>
             <textarea name="edited_body" rows="12" class="draft-editor"><%= draft.edited_body || draft.draft_body %></textarea>
@@ -93,16 +93,16 @@
 
       <!-- Action buttons -->
       <div class="draft-actions">
-        <form method="POST" action="/admin/inbox/<%= message.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+        <form method="POST" action="/admin/inbox/<%= message.id %>/draft/send" class="form-inline">
+          <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
           <button type="submit" class="btn btn-primary" onclick="return confirm('Send this reply?')">Approve & Send</button>
         </form>
-        <form method="POST" action="/admin/inbox/<%= message.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+        <form method="POST" action="/admin/inbox/<%= message.id %>/draft/dismiss" class="form-inline">
+          <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
           <button type="submit" class="btn btn-small">Dismiss</button>
         </form>
-        <form method="POST" action="/admin/inbox/<%= message.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+        <form method="POST" action="/admin/inbox/<%= message.id %>/draft/regenerate" class="form-inline">
+          <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
           <button type="submit" class="btn btn-small" onclick="return confirm('Regenerate draft? Current draft will be replaced.')">Regenerate</button>
         </form>
       </div>
@@ -113,8 +113,8 @@
   <!-- Manual reply form -->
   <section class="admin-section">
     <h2>Write Your Own Reply</h2>
-    <form method="POST" action="/admin/inbox/<%= message.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+    <form method="POST" action="/admin/inbox/<%= message.id %>/reply">
+      <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
       <div class="form-group">
         <label>Subject</label>
         <input type="text" name="reply_subject" value="Re: <%= message.subject %>" required>

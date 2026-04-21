@@ -45,7 +45,7 @@
   <h2 class="section-title">Share Your Photos & Videos</h2>
   <p class="section-desc">Upload your Claryville Open memories. Photos and videos are reviewed before appearing in the gallery.</p>
   <form method="POST" action="/gallery/upload" enctype="multipart/form-data" class="form upload-form">
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+    <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
     <div class="form-group">
       <label for="file">Photo or Video *</label>
       <input type="file" id="file" name="file" accept="image/*,video/*" required>

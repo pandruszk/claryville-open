@@ -2,7 +2,7 @@
 <div class="admin-header">
   <h1>Inbox</h1>
   <form method="POST" action="/admin/inbox/poll" class="form-inline">
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+    <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
     <button type="submit" class="btn btn-small">Check for New Emails</button>
   </form>
 </div>
@@ -70,13 +70,13 @@
             <button class="btn btn-small" onclick="toggleBody(<%= msg.id %>)">View</button>
             <a href="/admin/inbox/<%= msg.id %>/draft" class="btn btn-small">Reply</a>
             <% if (!msg.processed) { %>
-              <form method="POST" action="/admin/inbox/<%= msg.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+              <form method="POST" action="/admin/inbox/<%= msg.id %>/process" class="form-inline">
+                <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
                 <button type="submit" class="btn btn-small">Mark Done</button>
               </form>
             <% } %>
-            <form method="POST" action="/admin/inbox/<%= msg.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+            <form method="POST" action="/admin/inbox/<%= msg.id %>/delete" class="form-inline" onsubmit="return confirm('Delete?')">
+              <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
               <button type="submit" class="btn btn-small btn-danger">Delete</button>
             </form>
           </td>

@@ -30,20 +30,20 @@
           <% } %>
           <div class="admin-gallery-info">
             <p><strong><%= item.original_name %></strong></p>
-            <form method="POST" action="/admin/gallery/<%= item.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+            <form method="POST" action="/admin/gallery/<%= item.id %>/caption" class="form-inline" style="margin:0.35rem 0">
+              <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
               <input type="text" name="caption" value="<%= item.caption || '' %>" placeholder="Add caption..." style="flex:1">
               <button type="submit" class="btn btn-small">Save</button>
             </form>
             <% if (item.uploaded_by) { %><p class="form-hint">By: <%= item.uploaded_by %></p><% } %>
             <p class="form-hint"><%= new Date(item.created_at).toLocaleDateString() %></p>
             <div class="admin-gallery-actions">
-              <form method="POST" action="/admin/gallery/<%= item.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+              <form method="POST" action="/admin/gallery/<%= item.id %>/approve" class="form-inline">
+                <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
                 <button type="submit" class="btn btn-small btn-primary">Approve</button>
               </form>
-              <form method="POST" action="/admin/gallery/<%= item.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+              <form method="POST" action="/admin/gallery/<%= item.id %>/delete" class="form-inline" onsubmit="return confirm('Delete?')">
+                <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
                 <button type="submit" class="btn btn-small btn-danger">Delete</button>
               </form>
             </div>
@@ -70,15 +70,15 @@
             </video>
           <% } %>
           <div class="admin-gallery-info">
-            <form method="POST" action="/admin/gallery/<%= item.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+            <form method="POST" action="/admin/gallery/<%= item.id %>/caption" class="form-inline" style="margin:0.25rem 0">
+              <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
               <input type="text" name="caption" value="<%= item.caption || '' %>" placeholder="Add caption..." style="flex:1">
               <button type="submit" class="btn btn-small">Save</button>
             </form>
             <% if (item.uploaded_by) { %><p class="form-hint">By: <%= item.uploaded_by %></p><% } %>
             <div class="admin-gallery-actions">
-              <form method="POST" action="/admin/gallery/<%= item.id %>
-<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+              <form method="POST" action="/admin/gallery/<%= item.id %>/delete" class="form-inline" onsubmit="return confirm('Delete?')">
+                <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
                 <button type="submit" class="btn btn-small btn-danger">Remove</button>
               </form>
             </div>
