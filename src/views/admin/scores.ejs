@@ -62,6 +62,7 @@
 <div class="admin-section">
   <h2>Contest Winners</h2>
   <form method="POST" action="/admin/contests" class="form">
+<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
     <div class="contest-grid">
       <div class="form-group">
         <label>Closest to Pin (Male)</label>
@@ -131,7 +132,8 @@
         </div>
       </details>
 
-      <form method="POST" action="/admin/scores/<%= group.id %>" class="form score-form" id="score-form-<%= group.id %>">
+      <form method="POST" action="/admin/scores/<%= group.id %>
+<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
         <div class="holes-grid">
           <div class="nine-holes">
             <strong>Front 9</strong>

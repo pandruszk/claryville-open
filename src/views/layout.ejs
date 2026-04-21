@@ -69,6 +69,7 @@
       <div class="footer-signup">
         <p class="footer-signup-label">Stay in the loop</p>
         <form method="POST" action="/subscribe" class="footer-signup-form">
+<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
           <input type="email" name="email" placeholder="Your email address" required>
           <button type="submit" class="btn btn-accent btn-small">Sign Up</button>
         </form>

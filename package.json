@@ -1,7 +1,7 @@
 {
   "name": "claryville-open",
   "version": "1.0.0",
-  "description": "Claryville Open — Annual Family Golf Tournament",
+  "description": "Claryville Open \u2014 Annual Family Golf Tournament",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
@@ -17,6 +17,8 @@
     "mailparser": "^3.7.1",
     "multer": "^2.1.0",
     "resend": "^4.0.0",
-    "stripe": "^17.4.0"
+    "stripe": "^17.4.0",
+    "helmet": "^8.0.0",
+    "express-rate-limit": "^7.4.0"
   }
 }

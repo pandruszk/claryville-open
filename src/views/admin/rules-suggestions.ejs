@@ -35,7 +35,8 @@
           <td><%= s.original_subject %></td>
           <td><%= s.suggested_rule_text %></td>
           <td class="actions">
-            <form method="POST" action="/admin/rules-suggestions/<%= s.id %>/accept" class="form-inline rule-accept-inline">
+            <form method="POST" action="/admin/rules-suggestions/<%= s.id %>
+<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
               <input type="text" name="rule_text" value="<%= s.suggested_rule_text %>" class="rule-text-input-sm">
               <select name="category">
                 <option value="general">General</option>
@@ -77,7 +78,8 @@
             <td><%= rule.rule_text %></td>
             <td><%= rule.added_from_suggestion ? 'Email suggestion' : 'Manual' %></td>
             <td>
-              <form method="POST" action="/admin/tournament-rules/<%= rule.id %>/delete" class="form-inline" onsubmit="return confirm('Delete this rule?')">
+              <form method="POST" action="/admin/tournament-rules/<%= rule.id %>
+<input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
                 <button type="submit" class="btn btn-small btn-danger">Delete</button>
               </form>
             </td>

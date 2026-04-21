@@ -3,9 +3,47 @@ const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
 const StripeService = require('./services/stripe');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Trust nginx as a reverse proxy so rate-limiter sees real client IPs
+app.set('trust proxy', 1);
+
+// Security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://www.googletagmanager.com", "https://www.google-analytics.com", "https://js.stripe.com"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      imgSrc: ["'self'", "data:", "https://www.google-analytics.com"],
+      connectSrc: ["'self'", "https://www.google-analytics.com"],
+      frameSrc: ["https://js.stripe.com"],
+    },
+  },
+  hsts: { maxAge: 31536000, includeSubDomains: true },
+}));
+
+// Rate limiting for forms and login
+const formLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: 'Too many requests, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: 'Too many login attempts, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // Stripe webhook needs raw body — must come before express.json()
 app.post('/webhook/stripe', express.raw({ type: 'application/json' }), (req, res) => {
@@ -81,6 +119,7 @@ app.post('/webhook/sms', express.json(), async (req, res) => {
 
 // Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Simple session (cookie-based, no external store needed for this scale)
@@ -98,9 +137,31 @@ app.use((req, res, next) => {
     sid = crypto.randomBytes(16).toString('hex');
     sessions[sid] = {};
     req.session = sessions[sid];
-    res.setHeader('Set-Cookie', `sid=${sid}; Path=/; HttpOnly; SameSite=Lax`);
+    res.setHeader('Set-Cookie', `sid=${sid}; Path=/; HttpOnly; SameSite=Lax; Secure`);
   }
   req.session.destroy = () => { delete sessions[sid]; };
+  next();
+});
+// CSRF protection
+app.use((req, res, next) => {
+  // Skip CSRF for webhooks (they use their own auth)
+  if (req.path.startsWith('/webhook/')) return next();
+  // Skip for API endpoints that use JSON
+  if (req.path === '/api/ask' || req.path === '/admin/tee-order') return next();
+
+  // Generate token if not present
+  if (!req.session.csrfToken) {
+    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+  }
+  res.locals.csrfToken = req.session.csrfToken;
+
+  // Validate on POST/PUT/DELETE
+  if (['POST', 'PUT', 'DELETE'].includes(req.method)) {
+    const token = req.body?._csrf || req.headers['x-csrf-token'];
+    if (token !== req.session.csrfToken) {
+      return res.status(403).send('Invalid CSRF token');
+    }
+  }
   next();
 });
 
@@ -130,6 +191,11 @@ app.use((req, res, next) => {
 });
 
 // Routes
+// Apply rate limiting to form endpoints
+app.use('/register', formLimiter);
+app.use('/subscribe', formLimiter);
+app.use('/admin/login', loginLimiter);
+
 app.use('/', require('./routes/public'));
 app.use('/admin', require('./routes/admin'));
 
