@@ -23,20 +23,22 @@
     <input type="text" name="last_name" placeholder="Last name">
     <input type="email" name="email" placeholder="Email" required>
     <input type="text" name="clan" placeholder="Clan">
+    <label style="display:inline-flex;align-items:center;gap:0.25rem;font-size:0.85rem;">
+      <input type="checkbox" name="rules_committee" value="1"> Rules committee
+    </label>
     <button type="submit" class="btn btn-small btn-primary">Add</button>
   </form>
 </section>
 
 <section class="admin-section">
-  <% if (clans.length > 0) { %>
-    <div class="clan-filter" style="margin-bottom: 1rem;">
-      <strong style="font-size: 0.82rem; color: var(--gray-500);">Filter by clan:</strong>
-      <button class="btn btn-small" onclick="filterClan('')" style="margin-left: 0.25rem;">All (<%= distList.length %>)</button>
-      <% for (const clan of clans) { %>
-        <button class="btn btn-small" onclick="filterClan('<%= clan %>')"><%= clan %></button>
-      <% } %>
-    </div>
-  <% } %>
+  <div class="clan-filter" style="margin-bottom: 1rem;">
+    <strong style="font-size: 0.82rem; color: var(--gray-500);">Filter:</strong>
+    <button class="btn btn-small" onclick="filterClan('')" style="margin-left: 0.25rem;">All (<%= distList.length %>)</button>
+    <button class="btn btn-small" onclick="filterCommittee()"><strong>Rules Committee (<%= committeeCount %>)</strong></button>
+    <% for (const clan of clans) { %>
+      <button class="btn btn-small" onclick="filterClan('<%= clan %>')"><%= clan %></button>
+    <% } %>
+  </div>
 
   <table class="admin-table" id="contacts-table">
     <thead>
@@ -45,18 +47,20 @@
         <th>Last Name</th>
         <th>Email</th>
         <th>Clan</th>
+        <th>Committee</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       <% for (const c of distList) { %>
-        <tr data-clan="<%= c.clan || '' %>" id="row-<%= c.id %>">
+        <tr data-clan="<%= c.clan || '' %>" data-committee="<%= c.rules_committee ? '1' : '0' %>" id="row-<%= c.id %>">
           <td><%= c.first_name || '—' %></td>
           <td><%= c.last_name || '—' %></td>
           <td><%= c.email %></td>
           <td><%= c.clan || '—' %></td>
+          <td><%= c.rules_committee ? '⭐' : '' %></td>
           <td class="actions">
-            <button class="btn btn-small" onclick="editContact(<%= c.id %>, '<%= (c.first_name || '').replace(/'/g, "\\'") %>', '<%= (c.last_name || '').replace(/'/g, "\\'") %>', '<%= c.email.replace(/'/g, "\\'") %>', '<%= (c.clan || '').replace(/'/g, "\\'") %>')">Edit</button>
+            <button class="btn btn-small" onclick="editContact(<%= c.id %>, '<%= (c.first_name || '').replace(/'/g, "\\'") %>', '<%= (c.last_name || '').replace(/'/g, "\\'") %>', '<%= c.email.replace(/'/g, "\\'") %>', '<%= (c.clan || '').replace(/'/g, "\\'") %>', <%= c.rules_committee ? 1 : 0 %>)">Edit</button>
             <form method="POST" action="/admin/contacts/<%= c.id %>/delete" class="form-inline" onsubmit="return confirm('Remove from list?')">
               <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
               <button type="submit" class="btn btn-small btn-danger">Remove</button>
@@ -90,6 +94,12 @@
         <label>Clan</label>
         <input type="text" name="clan" id="edit-clan">
       </div>
+      <div class="form-group">
+        <label style="display:inline-flex;align-items:center;gap:0.5rem;">
+          <input type="checkbox" name="rules_committee" id="edit-rules-committee" value="1">
+          On the rules committee
+        </label>
+      </div>
       <div class="actions" style="gap: 0.5rem; margin-top: 1rem;">
         <button type="submit" class="btn btn-small btn-primary">Save</button>
         <button type="button" class="btn btn-small" onclick="closeEdit()">Cancel</button>
@@ -102,20 +112,24 @@
 function filterClan(clan) {
   const rows = document.querySelectorAll('#contacts-table tbody tr');
   rows.forEach(row => {
-    if (!clan || row.dataset.clan === clan) {
-      row.style.display = '';
-    } else {
-      row.style.display = 'none';
-    }
+    row.style.display = (!clan || row.dataset.clan === clan) ? '' : 'none';
   });
 }
 
-function editContact(id, first, last, email, clan) {
+function filterCommittee() {
+  const rows = document.querySelectorAll('#contacts-table tbody tr');
+  rows.forEach(row => {
+    row.style.display = row.dataset.committee === '1' ? '' : 'none';
+  });
+}
+
+function editContact(id, first, last, email, clan, rulesCommittee) {
   document.getElementById('edit-form').action = '/admin/contacts/' + id + '/edit';
   document.getElementById('edit-first').value = first;
   document.getElementById('edit-last').value = last;
   document.getElementById('edit-email').value = email;
   document.getElementById('edit-clan').value = clan;
+  document.getElementById('edit-rules-committee').checked = rulesCommittee === 1 || rulesCommittee === '1';
   document.getElementById('edit-modal').style.display = 'flex';
 }
 
