@@ -1,0 +1,55 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Chat Log</h1>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/groups">Groups</a>
+  <a href="/admin/inbox">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/contacts">Contacts</a>
+  <a href="/admin/scores">Scores</a>
+  <a href="/admin/gallery">Gallery</a>
+  <a href="/admin/rules-suggestions">Rules</a>
+  <a href="/admin/past-winners">Winners</a>
+  <a href="/admin/chat-log" class="active">Chat Log</a>
+</nav>
+
+<div class="draft-stats-bar">
+  <span class="draft-stat"><strong><%= totalTurns %></strong> total turns</span>
+  <span class="draft-stat"><strong><%= conversations.length %></strong> conversations</span>
+  <span class="draft-stat"><strong><%= fallbackTurns %></strong> fallback / unanswered</span>
+</div>
+
+<p class="form-hint">Questions people asked the AI caddy on <a href="/questions">/questions</a>, newest conversation first. Turns within each conversation are oldest-to-newest. A "fallback" turn means the AI returned one of the canned responses (no API key, API error, or the model produced no text).</p>
+
+<% if (conversations.length === 0) { %>
+  <div class="alert alert-info">No chats logged yet. Once people start asking the caddy questions, they'll show up here.</div>
+<% } else { %>
+  <% for (const c of conversations) { %>
+    <section class="admin-section">
+      <h2 style="font-size:1rem;color:var(--gray-500);margin-bottom:0.5rem">
+        Conversation <%= c.id %>
+        <span style="font-weight:normal;color:var(--gray-400);margin-left:0.5rem">
+          <%= new Date(c.first_at + 'Z').toLocaleString() %>
+          <% if (c.turns.length > 1) { %>
+            &rarr; <%= new Date(c.last_at + 'Z').toLocaleString() %>
+          <% } %>
+          &middot; <%= c.turns.length %> turn<%= c.turns.length === 1 ? '' : 's' %>
+        </span>
+      </h2>
+      <% for (const t of c.turns) { %>
+        <div style="margin-bottom:0.75rem;padding:0.5rem 0.75rem;border-left:3px solid var(--gray-200)">
+          <div style="color:var(--gray-700);margin-bottom:0.35rem">
+            <strong>Q:</strong> <%= t.question %>
+          </div>
+          <div style="color:var(--gray-900)">
+            <strong>A<% if (t.is_fallback) { %> <span class="badge badge-needs-review">fallback</span><% } %>:</strong>
+            <%- t.answer %>
+          </div>
+        </div>
+      <% } %>
+    </section>
+  <% } %>
+<% } %>

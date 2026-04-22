@@ -535,6 +535,32 @@ router.post('/past-winners/:id/delete', (req, res) => {
   res.redirect('/admin/past-winners');
 });
 
+// Chat log — shows questions asked of the AI caddy on /questions
+router.get('/chat-log', (req, res) => {
+  const turns = db.prepare(
+    'SELECT id, conversation_id, question, answer, is_fallback, created_at FROM chat_log ORDER BY created_at DESC LIMIT 500'
+  ).all();
+  // Group consecutive turns by conversation, newest first
+  const conversations = [];
+  const byId = new Map();
+  for (const t of turns) {
+    if (!byId.has(t.conversation_id)) {
+      const conv = { id: t.conversation_id, turns: [], first_at: t.created_at, last_at: t.created_at };
+      byId.set(t.conversation_id, conv);
+      conversations.push(conv);
+    }
+    const conv = byId.get(t.conversation_id);
+    conv.turns.push(t);
+    if (t.created_at < conv.first_at) conv.first_at = t.created_at;
+    if (t.created_at > conv.last_at) conv.last_at = t.created_at;
+  }
+  // Display oldest-to-newest within each conversation
+  for (const c of conversations) c.turns.reverse();
+  const totalTurns = db.prepare('SELECT COUNT(*) AS c FROM chat_log').get().c;
+  const fallbackTurns = db.prepare('SELECT COUNT(*) AS c FROM chat_log WHERE is_fallback = 1').get().c;
+  res.render('admin/chat-log', { conversations, totalTurns, fallbackTurns });
+});
+
 function getSettings() {
   const rows = db.prepare('SELECT key, value FROM settings').all();
   const settings = {};

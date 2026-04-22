@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
+const crypto = require('crypto');
 const multer = require('multer');
 const db = require('../models/db');
 const Players = require('../models/players');
@@ -294,10 +295,26 @@ router.post('/api/ask', express.json(), async (req, res) => {
     return res.json({ answer: 'You gotta actually ask something.' });
   }
 
+  // Give each browser session a stable conversation id so we can group
+  // multi-turn chats together in the admin log.
+  if (!req.session.chat_conversation_id) {
+    req.session.chat_conversation_id = crypto.randomBytes(8).toString('hex');
+  }
+  const conversationId = req.session.chat_conversation_id;
+  const lastQuestion = chatMessages[chatMessages.length - 1].content;
+  const logTurn = (answer, isFallback) => {
+    try {
+      db.prepare('INSERT INTO chat_log (conversation_id, question, answer, is_fallback) VALUES (?, ?, ?, ?)')
+        .run(conversationId, lastQuestion, answer, isFallback ? 1 : 0);
+    } catch (err) { console.error('[Chat log] insert error:', err.message); }
+  };
+
   try {
     const Anthropic = require('@anthropic-ai/sdk').default;
     if (!process.env.ANTHROPIC_API_KEY) {
-      return res.json({ answer: "The brain isn't plugged in right now. Email us at rulescommittee@claryvilleopen.com and a real human will get back to you." });
+      const answer = "The brain isn't plugged in right now. Email us at rulescommittee@claryvilleopen.com and a real human will get back to you.";
+      logTurn(answer, true);
+      return res.json({ answer });
     }
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const systemPrompt = AutoReplyService.buildTournamentContext() + `
@@ -331,11 +348,15 @@ Ask these naturally in conversation, not as a big dump. Once you have the info f
       messages: chatMessages,
     });
 
-    const answer = msg.content[0]?.text || "Something went sideways. Email rulescommittee@claryvilleopen.com instead.";
+    const modelAnswer = msg.content[0]?.text;
+    const answer = modelAnswer || "Something went sideways. Email rulescommittee@claryvilleopen.com instead.";
+    logTurn(answer, !modelAnswer);
     res.json({ answer });
   } catch (err) {
     console.error('[Questions] AI error:', err.message);
-    res.json({ answer: "The AI caddy took a lunch break. Email rulescommittee@claryvilleopen.com and a human will help you out." });
+    const answer = "The AI caddy took a lunch break. Email rulescommittee@claryvilleopen.com and a human will help you out.";
+    logTurn(answer, true);
+    res.json({ answer });
   }
 });
 

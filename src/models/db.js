@@ -153,6 +153,17 @@ db.exec(`
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_sessions_updated_at ON sessions(updated_at);
+
+  CREATE TABLE IF NOT EXISTS chat_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    conversation_id TEXT NOT NULL,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    is_fallback INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_chat_log_conversation ON chat_log(conversation_id);
+  CREATE INDEX IF NOT EXISTS idx_chat_log_created_at ON chat_log(created_at);
 `);
 
 // Prune sessions older than 30 days on boot (cheap housekeeping, keeps the table small)
