@@ -288,9 +288,10 @@ router.get('/email', (req, res) => {
 
 // Distribution list / Contacts
 router.get('/contacts', (req, res) => {
-  const distList = db.prepare('SELECT * FROM distribution_list ORDER BY clan, last_name, first_name').all();
-  const clans = [...new Set(distList.filter(d => d.clan).map(d => d.clan))].sort();
-  res.render('admin/contacts', { distList, clans });
+  const distList = db.prepare('SELECT id, first_name, last_name, email, clan, rules_committee FROM distribution_list ORDER BY last_name, first_name').all();
+  const clans = [...new Set(distList.map(c => c.clan).filter(Boolean))].sort();
+  const committeeCount = distList.filter(c => c.rules_committee).length;
+  res.render('admin/contacts', { distList, clans, committeeCount });
 });
 
 router.post('/email/send', express.urlencoded({ extended: true }), async (req, res) => {
@@ -306,10 +307,11 @@ router.post('/email/send', express.urlencoded({ extended: true }), async (req, r
 // Distribution list management
 router.post('/contacts/add', express.urlencoded({ extended: true }), (req, res) => {
   const { first_name, last_name, email, clan } = req.body;
+  const rules_committee = req.body.rules_committee ? 1 : 0;
   if (!email) return res.redirect('/admin/contacts');
   try {
-    db.prepare('INSERT INTO distribution_list (first_name, last_name, email, clan) VALUES (?, ?, ?, ?)')
-      .run(first_name || null, last_name || null, email, clan || null);
+    db.prepare('INSERT OR IGNORE INTO distribution_list (first_name, last_name, email, clan, rules_committee) VALUES (?, ?, ?, ?, ?)')
+      .run(first_name || null, last_name || null, email, clan || null, rules_committee);
   } catch (err) {
     console.error('[Admin] Error adding contact:', err.message);
   }
@@ -318,8 +320,9 @@ router.post('/contacts/add', express.urlencoded({ extended: true }), (req, res) 
 
 router.post('/contacts/:id/edit', express.urlencoded({ extended: true }), (req, res) => {
   const { first_name, last_name, email, clan } = req.body;
-  db.prepare('UPDATE distribution_list SET first_name = ?, last_name = ?, email = ?, clan = ? WHERE id = ?')
-    .run(first_name || null, last_name || null, email, clan || null, req.params.id);
+  const rules_committee = req.body.rules_committee ? 1 : 0;
+  db.prepare('UPDATE distribution_list SET first_name = ?, last_name = ?, email = ?, clan = ?, rules_committee = ? WHERE id = ?')
+    .run(first_name || null, last_name || null, email, clan || null, rules_committee, req.params.id);
   res.redirect('/admin/contacts');
 });
 
