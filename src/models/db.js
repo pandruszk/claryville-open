@@ -154,6 +154,7 @@ try { db.exec('ALTER TABLE distribution_list ADD COLUMN phone TEXT'); } catch (e
 try { db.exec('ALTER TABLE draft_replies ADD COLUMN needs_review INTEGER DEFAULT 0'); } catch (e) { /* already exists */ }
 try { db.exec('ALTER TABLE players ADD COLUMN display_name TEXT'); } catch (e) { /* already exists */ }
 try { db.exec('ALTER TABLE groups ADD COLUMN tee_order INTEGER'); } catch (e) { /* already exists */ }
+try { db.exec('ALTER TABLE distribution_list ADD COLUMN rules_committee INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* already exists */ }
 
 // Seed default settings if empty
 const settingsCount = db.prepare('SELECT COUNT(*) as c FROM settings').get();
@@ -452,6 +453,33 @@ if (pwpCount.c === 0 && winnersCount.c > 0 || pwpCount.c === 0 && db.prepare('SE
     }
   });
   seedPWP();
+}
+
+// Seed rules committee members — runs once per environment (guarded by settings key).
+// Admins can unflag members via the UI without this re-flagging them on reboot.
+const committeeSeeded = db.prepare("SELECT value FROM settings WHERE key = 'rules_committee_seeded'").get();
+if (!committeeSeeded) {
+  const upsertContact = db.prepare(`
+    INSERT INTO distribution_list (first_name, last_name, email, clan, rules_committee)
+    VALUES (?, ?, ?, ?, 1)
+    ON CONFLICT(email) DO UPDATE SET rules_committee = 1
+  `);
+  const committee = [
+    ['Peter', 'Andruszkiewicz', 'petera191@gmail.com', 'Andruszkiewicz'],
+    ['Matt',  'Quinn',          'Mattq@kraftse.com',             'Quinn'],
+    ['John',  'Quinn',          'JJQuinn62@gmail.com',           'Quinn'],
+    ['Pete',  'Andruszkiewicz', 'pandruszk@gmail.com',           'Andruszkiewicz'],
+    ['Bob',   'Quackenbush',    'bobquackenbush@gmail.com',      'Quackenbush'],
+    ['Scott', 'Wellington',     'swellington@wellingtonsearch.com', 'Wellington'],
+  ];
+  const markDone = db.prepare("INSERT INTO settings (key, value) VALUES ('rules_committee_seeded', 'true')");
+  const seedCommittee = db.transaction(() => {
+    for (const [first, last, email, clan] of committee) {
+      upsertContact.run(first, last, email, clan);
+    }
+    markDone.run();
+  });
+  seedCommittee();
 }
 
 module.exports = db;
