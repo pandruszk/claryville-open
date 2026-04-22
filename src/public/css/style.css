@@ -791,7 +791,7 @@ img { max-width: 100%; }
 
 .video-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
 }

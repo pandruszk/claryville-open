@@ -163,7 +163,7 @@ if (settingsCount.c === 0) {
   const defaults = [
     ['tournament_name', 'The Claryville Open'],
     ['tournament_year', '2026'],
-    ['tournament_date', 'Friday, July 3rd, 2026'],
+    ['tournament_date', 'Friday, July 3, 2026'],
     ['course_name', 'Tarry Brae Golf Course'],
     ['results_published', 'false'],
     ['registration_open', 'true'],
@@ -178,6 +178,10 @@ if (settingsCount.c === 0) {
 // Only updates the old-default value; if an admin has since set a different
 // course name through the UI, leave it alone.
 db.prepare("UPDATE settings SET value = 'Tarry Brae Golf Course' WHERE key = 'course_name' AND value = 'Lochmor Golf Club'").run();
+
+// One-time migration: normalize tournament_date to match the hard-coded
+// sub-header format (no ordinal suffix). Only touches the old default.
+db.prepare("UPDATE settings SET value = 'Friday, July 3, 2026' WHERE key = 'tournament_date' AND value = 'Friday, July 3rd, 2026'").run();
 
 // Seed tee sheet settings (always INSERT OR IGNORE, safe to run repeatedly)
 const seedTeeSetting = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');
