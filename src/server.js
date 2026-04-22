@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const crypto = require('crypto');
+const db = require('./models/db');
 const StripeService = require('./services/stripe');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
@@ -123,8 +124,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Simple session (cookie-based, no external store needed for this scale)
-const sessions = {};
+// Session middleware — SQLite-backed so sessions survive container restarts.
+// Loads the session row at request start and persists any changes when the
+// response finishes. Session data is stored as JSON in the `sessions` table.
+const selectSession = db.prepare('SELECT data FROM sessions WHERE sid = ?');
+const upsertSession = db.prepare(
+  "INSERT INTO sessions (sid, data, updated_at) VALUES (?, ?, datetime('now')) " +
+  "ON CONFLICT(sid) DO UPDATE SET data = excluded.data, updated_at = excluded.updated_at"
+);
+const deleteSession = db.prepare('DELETE FROM sessions WHERE sid = ?');
+
 app.use((req, res, next) => {
   let sid = null;
   const cookie = req.headers.cookie;
@@ -132,15 +141,43 @@ app.use((req, res, next) => {
     const match = cookie.split(';').map(c => c.trim()).find(c => c.startsWith('sid='));
     if (match) sid = match.split('=')[1];
   }
-  if (sid && sessions[sid]) {
-    req.session = sessions[sid];
-  } else {
+
+  let session = null;
+  if (sid) {
+    const row = selectSession.get(sid);
+    if (row) {
+      try { session = JSON.parse(row.data); } catch { session = null; }
+    }
+  }
+
+  let isNew = false;
+  if (!session) {
     sid = crypto.randomBytes(16).toString('hex');
-    sessions[sid] = {};
-    req.session = sessions[sid];
+    session = {};
+    isNew = true;
     res.setHeader('Set-Cookie', `sid=${sid}; Path=/; HttpOnly; SameSite=Lax; Secure`);
   }
-  req.session.destroy = () => { delete sessions[sid]; };
+
+  req.session = session;
+  let destroyed = false;
+  req.session.destroy = () => {
+    deleteSession.run(sid);
+    destroyed = true;
+  };
+
+  res.on('finish', () => {
+    if (destroyed) return;
+    try {
+      const { destroy, ...toSave } = req.session;
+      // Avoid writing empty, never-touched sessions for anonymous GETs
+      if (!isNew || Object.keys(toSave).length > 0) {
+        upsertSession.run(sid, JSON.stringify(toSave));
+      }
+    } catch (err) {
+      console.error('[Session] save error:', err.message);
+    }
+  });
+
   next();
 });
 // CSRF protection

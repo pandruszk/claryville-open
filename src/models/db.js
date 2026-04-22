@@ -146,7 +146,17 @@ db.exec(`
     display_name TEXT NOT NULL,
     contact_id INTEGER REFERENCES distribution_list(id) ON DELETE SET NULL
   );
+
+  CREATE TABLE IF NOT EXISTS sessions (
+    sid TEXT PRIMARY KEY,
+    data TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_sessions_updated_at ON sessions(updated_at);
 `);
+
+// Prune sessions older than 30 days on boot (cheap housekeeping, keeps the table small)
+db.prepare("DELETE FROM sessions WHERE updated_at < datetime('now', '-30 days')").run();
 
 // Migrations — add columns to existing tables
 try { db.exec('ALTER TABLE players ADD COLUMN phone TEXT'); } catch (e) { /* already exists */ }
