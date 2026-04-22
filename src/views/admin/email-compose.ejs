@@ -17,7 +17,6 @@
 
 <section class="admin-section">
   <h2>Compose Email</h2>
-  <p class="form-hint">Will send to all <strong><%= emailCount %></strong> people on the <a href="/admin/contacts">distribution list</a>.</p>
 
   <div class="email-templates">
     <strong>Quick templates:</strong>
@@ -28,8 +27,16 @@
     <button class="btn btn-small" onclick="loadTemplate('recap')">Recap & Results</button>
   </div>
 
-  <form method="POST" action="/admin/email/send" class="form" onsubmit="return confirm('Send this email to all <%= emailCount %> recipients?')">
+  <form method="POST" action="/admin/email/send" class="form" onsubmit="return confirmSend()">
     <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+    <div class="form-group">
+      <label for="audience">Audience</label>
+      <select id="audience" name="audience" onchange="updateSendLabel()">
+        <% for (const opt of audienceOptions) { %>
+          <option value="<%= opt.value %>" data-count="<%= opt.count %>"><%= opt.label %></option>
+        <% } %>
+      </select>
+    </div>
     <div class="form-group">
       <label for="subject">Subject</label>
       <input type="text" id="subject" name="subject" required>
@@ -42,7 +49,7 @@
       <label>Preview</label>
       <div id="preview" class="email-preview"></div>
     </div>
-    <button type="submit" class="btn btn-primary">Send to All (<%= emailCount %>)</button>
+    <button type="submit" class="btn btn-primary" id="send-btn">Send to All (<%= emailCount %>)</button>
   </form>
 </section>
 
@@ -104,4 +111,20 @@ function updatePreview() {
 }
 
 document.getElementById('body')?.addEventListener('input', updatePreview);
+
+function updateSendLabel() {
+  const sel = document.getElementById('audience');
+  const opt = sel.options[sel.selectedIndex];
+  const label = opt.textContent;
+  document.getElementById('send-btn').textContent = 'Send — ' + label;
+}
+
+function confirmSend() {
+  const sel = document.getElementById('audience');
+  const opt = sel.options[sel.selectedIndex];
+  return confirm('Send this email to: ' + opt.textContent + '?');
+}
+
+// Initialize label on page load in case the selected option isn't the default
+updateSendLabel();
 </script>
