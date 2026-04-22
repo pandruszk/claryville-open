@@ -26,9 +26,7 @@
   <span class="draft-stat"><strong><%= draftStats.sent %></strong> sent</span>
 </div>
 
-<% if (messages.length === 0) { %>
-  <div class="alert alert-info">No incoming emails. Configure IMAP in your .env to start polling.</div>
-<% } else { %>
+<% if (messages.length > 0) { %>
   <table class="admin-table" style="table-layout:fixed;width:100%">
     <thead>
       <tr>
