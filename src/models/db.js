@@ -164,7 +164,7 @@ if (settingsCount.c === 0) {
     ['tournament_name', 'The Claryville Open'],
     ['tournament_year', '2026'],
     ['tournament_date', 'Friday, July 3rd, 2026'],
-    ['course_name', 'Lochmor Golf Club'],
+    ['course_name', 'Tarry Brae Golf Course'],
     ['results_published', 'false'],
     ['registration_open', 'true'],
   ];
@@ -173,6 +173,11 @@ if (settingsCount.c === 0) {
   });
   seedAll();
 }
+
+// One-time migration: tournament venue moved from Lochmor to Tarry Brae.
+// Only updates the old-default value; if an admin has since set a different
+// course name through the UI, leave it alone.
+db.prepare("UPDATE settings SET value = 'Tarry Brae Golf Course' WHERE key = 'course_name' AND value = 'Lochmor Golf Club'").run();
 
 // Seed tee sheet settings (always INSERT OR IGNORE, safe to run repeatedly)
 const seedTeeSetting = db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)');

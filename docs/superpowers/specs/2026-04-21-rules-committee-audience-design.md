@@ -97,7 +97,7 @@ Admin pastes this into the compose page, selects audience = Rules Committee, edi
 > 4. **Custom Tournament Rules** (bottom of the Rules page) — the list of rules the AI is told about when drafting replies. Add, edit, delete.
 >
 > **What the AI already knows**
-> Our custom rules list, plus course info for Lochmor. If the AI says something wrong, fix the rules list and regenerate the draft — it'll incorporate the update.
+> Our custom rules list, plus course info for Tarry Brae. If the AI says something wrong, fix the rules list and regenerate the draft — it'll incorporate the update.
 >
 > **Can you help us test the signup flow?**
 > Before we open registration to everyone, please walk through a fake team signup at https://claryvilleopen.com/register as if you were a player. Try it on your phone too. If anything looks off — confusing wording, a broken button, an email that doesn't arrive, a layout that's hard to read — reply to this email and tell us what you saw. Even small things are useful.
