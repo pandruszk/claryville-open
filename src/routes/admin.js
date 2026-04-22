@@ -282,8 +282,23 @@ router.post('/tournament-rules/:id/delete', (req, res) => {
 // Email compose
 router.get('/email', (req, res) => {
   const sentEmails = EmailService.getSentEmails();
-  const emailCount = db.prepare('SELECT COUNT(*) as c FROM distribution_list').get().c;
-  res.render('admin/email-compose', { sentEmails, emailCount });
+  const distList = db.prepare('SELECT clan, rules_committee FROM distribution_list').all();
+  const total = distList.length;
+  const committee = distList.filter(c => c.rules_committee).length;
+  const byClan = {};
+  for (const c of distList) {
+    if (c.clan) byClan[c.clan] = (byClan[c.clan] || 0) + 1;
+  }
+  const audienceOptions = [
+    { value: 'all', label: `All (${total})`, count: total },
+    { value: 'committee', label: `Rules Committee (${committee})`, count: committee },
+    ...Object.keys(byClan).sort().map(name => ({
+      value: `clan:${name}`,
+      label: `Clan: ${name} (${byClan[name]})`,
+      count: byClan[name],
+    })),
+  ];
+  res.render('admin/email-compose', { sentEmails, emailCount: total, audienceOptions });
 });
 
 // Distribution list / Contacts
@@ -296,11 +311,26 @@ router.get('/contacts', (req, res) => {
 
 router.post('/email/send', express.urlencoded({ extended: true }), async (req, res) => {
   const { subject, body } = req.body;
-  const recipients = db.prepare('SELECT email FROM distribution_list').all().map(r => r.email);
-  if (recipients.length === 0) {
-    return res.redirect('/admin/email');
+  const audience = req.body.audience || 'all';
+
+  let rows;
+  if (audience === 'all') {
+    rows = db.prepare('SELECT email FROM distribution_list').all();
+  } else if (audience === 'committee') {
+    rows = db.prepare('SELECT email FROM distribution_list WHERE rules_committee = 1').all();
+  } else if (audience.startsWith('clan:')) {
+    const clanName = audience.slice('clan:'.length);
+    rows = db.prepare('SELECT email FROM distribution_list WHERE clan = ?').all(clanName);
+  } else {
+    return res.status(400).send('Invalid audience');
   }
-  const sent = await EmailService.sendBulk(recipients, subject, body);
+
+  const recipients = rows.map(r => r.email);
+  if (recipients.length === 0) {
+    return res.status(400).send('No recipients match the selected audience.');
+  }
+
+  await EmailService.sendBulk(recipients, subject, body);
   res.redirect('/admin/email');
 });
 
