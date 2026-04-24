@@ -72,6 +72,35 @@ const EmailService = {
     return sent;
   },
 
+  // Send a single email with multiple recipients — everyone visible to each
+  // other in the To: header. Use for small-group discussions (e.g. the rules
+  // committee) where reply-all should loop everyone in. Do NOT use for
+  // broadcast lists where recipients should not see each other.
+  async sendGroup(recipients, subject, html) {
+    const client = getClient();
+    if (!client) {
+      console.log('[Email] No API key configured, skipping group send');
+      return 0;
+    }
+    try {
+      const { data, error } = await client.emails.send({
+        from: process.env.EMAIL_FROM || 'Claryville Open <noreply@claryvilleopen.com>',
+        to: recipients,
+        subject,
+        html,
+      });
+      if (error) throw error;
+      db.prepare('INSERT INTO emails_sent (subject, body, recipient_count) VALUES (?, ?, ?)')
+        .run(subject, html, recipients.length);
+      return recipients.length;
+    } catch (err) {
+      console.error('[Email] Group send error:', err.message || err);
+      db.prepare('INSERT INTO emails_sent (subject, body, recipient_count) VALUES (?, ?, ?)')
+        .run(subject, html, 0);
+      throw err;
+    }
+  },
+
   async sendConfirmation(email, playerNames, groupName) {
     const names = playerNames.join(', ');
     const html = `

@@ -330,7 +330,14 @@ router.post('/email/send', express.urlencoded({ extended: true }), async (req, r
     return res.status(400).send('No recipients match the selected audience.');
   }
 
-  await EmailService.sendBulk(recipients, subject, body);
+  // Rules committee: send one email with everyone visible to each other so
+  // reply-all loops in the whole committee. Broadcasts (all, clan) stay
+  // per-recipient so addresses aren't exposed across the distribution list.
+  if (audience === 'committee') {
+    await EmailService.sendGroup(recipients, subject, body);
+  } else {
+    await EmailService.sendBulk(recipients, subject, body);
+  }
   res.redirect('/admin/email');
 });
 
