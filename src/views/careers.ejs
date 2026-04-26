@@ -1,0 +1,42 @@
+<% layout('layout') -%>
+<div class="page-header">
+  <h1>Careers</h1>
+  <p>Join the Claryville Open</p>
+</div>
+
+<div class="page-content">
+  <% if (success) { %>
+    <div class="alert alert-success">Thanks for applying — we'll be in touch.</div>
+  <% } %>
+
+  <section class="rules-section">
+    <h2>Website Administrator Internship</h2>
+    <p><strong>Compensation:</strong> Unpaid.</p>
+    <p><strong>Requirements:</strong> Some, any, or interest in working on a website. That's it.</p>
+    <p>The Claryville Open is going digital and we need a hand. The internship covers everything from the registration flow to the AI caddy to the photo gallery — wherever the curiosity takes you. Help shape the second-most fun part of the tournament (after the tournament itself).</p>
+  </section>
+
+  <section class="rules-section">
+    <h2>Apply</h2>
+    <form method="POST" action="/careers/apply" class="form">
+      <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Cell Phone <span class="optional">(optional)</span></label>
+        <input type="tel" id="phone" name="phone" placeholder="555-555-5555">
+      </div>
+      <div class="form-group">
+        <label for="why_interested">Tell us about your experience or interest in working on a website</label>
+        <textarea id="why_interested" name="why_interested" rows="6" required placeholder="A sentence is fine. Whatever you've got."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit Application</button>
+    </form>
+  </section>
+</div>

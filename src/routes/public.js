@@ -388,6 +388,30 @@ router.get('/api/lookup-contact', (req, res) => {
 });
 
 // Footer email signup
+// Careers — internship listing + application form
+router.get('/careers', (req, res) => {
+  const settings = getSettings();
+  res.render('careers', { settings, title: 'Careers', success: req.query.success === '1' });
+});
+
+router.post('/careers/apply', express.urlencoded({ extended: true }), (req, res) => {
+  const name = (req.body.name || '').trim();
+  const email = (req.body.email || '').trim();
+  const phone = (req.body.phone || '').trim() || null;
+  const whyInterested = (req.body.why_interested || '').trim();
+  if (!name || !email || !whyInterested) {
+    return res.redirect('/careers');
+  }
+  try {
+    db.prepare(
+      'INSERT INTO careers_applications (name, email, phone, why_interested) VALUES (?, ?, ?, ?)'
+    ).run(name, email, phone, whyInterested);
+  } catch (err) {
+    console.error('[Careers] insert error:', err.message);
+  }
+  res.redirect('/careers?success=1');
+});
+
 router.post('/subscribe', express.urlencoded({ extended: true }), (req, res) => {
   const email = req.body.email?.trim();
   if (!email) return res.redirect(req.get('referer') || '/');

@@ -164,6 +164,17 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_chat_log_conversation ON chat_log(conversation_id);
   CREATE INDEX IF NOT EXISTS idx_chat_log_created_at ON chat_log(created_at);
+
+  CREATE TABLE IF NOT EXISTS careers_applications (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL,
+    phone TEXT,
+    why_interested TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    reviewed INTEGER NOT NULL DEFAULT 0
+  );
+  CREATE INDEX IF NOT EXISTS idx_careers_applications_created_at ON careers_applications(created_at);
 `);
 
 // Prune sessions older than 30 days on boot (cheap housekeeping, keeps the table small)

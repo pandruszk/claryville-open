@@ -542,6 +542,25 @@ router.post('/past-winners/:id/delete', (req, res) => {
   res.redirect('/admin/past-winners');
 });
 
+// Careers — list applications submitted via /careers/apply
+router.get('/careers', (req, res) => {
+  const applications = db.prepare(
+    'SELECT id, name, email, phone, why_interested, reviewed, created_at FROM careers_applications ORDER BY created_at DESC'
+  ).all();
+  const newCount = applications.filter(a => !a.reviewed).length;
+  res.render('admin/careers', { applications, newCount });
+});
+
+router.post('/careers/:id/reviewed', (req, res) => {
+  db.prepare('UPDATE careers_applications SET reviewed = 1 WHERE id = ?').run(req.params.id);
+  res.redirect('/admin/careers');
+});
+
+router.post('/careers/:id/delete', (req, res) => {
+  db.prepare('DELETE FROM careers_applications WHERE id = ?').run(req.params.id);
+  res.redirect('/admin/careers');
+});
+
 // Chat log — shows questions asked of the AI caddy on /questions
 router.get('/chat-log', (req, res) => {
   const turns = db.prepare(

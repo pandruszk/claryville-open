@@ -1,0 +1,64 @@
+<% layout('layout') -%>
+<div class="admin-header">
+  <h1>Careers Applications</h1>
+</div>
+
+<nav class="admin-nav">
+  <a href="/admin">Dashboard</a>
+  <a href="/admin/groups">Groups</a>
+  <a href="/admin/inbox">Inbox</a>
+  <a href="/admin/email">Email</a>
+  <a href="/admin/contacts">Contacts</a>
+  <a href="/admin/scores">Scores</a>
+  <a href="/admin/gallery">Gallery</a>
+  <a href="/admin/rules-suggestions">Rules</a>
+  <a href="/admin/past-winners">Winners</a>
+  <a href="/admin/chat-log">Chat Log</a>
+  <a href="/admin/careers" class="active">Careers</a>
+</nav>
+
+<div class="draft-stats-bar">
+  <span class="draft-stat"><strong><%= applications.length %></strong> total</span>
+  <span class="draft-stat"><strong><%= newCount %></strong> new</span>
+</div>
+
+<p class="form-hint">Applications submitted via <a href="/careers">/careers</a>, newest first.</p>
+
+<% if (applications.length === 0) { %>
+  <div class="alert alert-info">No applications yet.</div>
+<% } else { %>
+  <% for (const a of applications) { %>
+    <section class="admin-section" style="opacity: <%= a.reviewed ? '0.6' : '1' %>">
+      <h2 style="font-size:1rem;margin-bottom:0.5rem">
+        <%= a.name %>
+        <% if (!a.reviewed) { %>
+          <span class="badge badge-needs-review">new</span>
+        <% } else { %>
+          <span class="badge badge-complete">reviewed</span>
+        <% } %>
+        <span style="font-weight:normal;color:var(--gray-500);margin-left:0.5rem;font-size:0.85rem">
+          <%= new Date(a.created_at + 'Z').toLocaleString() %>
+        </span>
+      </h2>
+      <p style="margin:0.25rem 0">
+        <a href="mailto:<%= a.email %>"><%= a.email %></a>
+        <% if (a.phone) { %>
+          &middot; <%= a.phone %>
+        <% } %>
+      </p>
+      <div style="padding:0.5rem 0.75rem;border-left:3px solid var(--gray-200);margin:0.5rem 0;white-space:pre-wrap"><%= a.why_interested %></div>
+      <div class="actions" style="gap:0.5rem">
+        <% if (!a.reviewed) { %>
+          <form method="POST" action="/admin/careers/<%= a.id %>/reviewed" class="form-inline">
+            <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+            <button type="submit" class="btn btn-small">Mark Reviewed</button>
+          </form>
+        <% } %>
+        <form method="POST" action="/admin/careers/<%= a.id %>/delete" class="form-inline" onsubmit="return confirm('Delete this application?')">
+          <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+          <button type="submit" class="btn btn-small btn-danger">Delete</button>
+        </form>
+      </div>
+    </section>
+  <% } %>
+<% } %>
