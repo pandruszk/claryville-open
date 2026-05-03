@@ -2,6 +2,7 @@ const Imap = require('imap');
 const { simpleParser } = require('mailparser');
 const db = require('../models/db');
 const AutoReplyService = require('./auto-reply');
+const { htmlToText } = require('./html-utils');
 
 let polling = false;
 
@@ -133,7 +134,7 @@ const InboxService = {
   insertFromWebhook({ from, subject, body }) {
     db.prepare(
       'INSERT INTO inbox_messages (from_addr, subject, body, received_at) VALUES (?, ?, ?, ?)'
-    ).run(from, subject, body, new Date().toISOString());
+    ).run(from, subject, htmlToText(body), new Date().toISOString());
   },
 
   delete(id) {

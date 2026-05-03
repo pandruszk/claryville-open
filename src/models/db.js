@@ -211,6 +211,27 @@ if (settingsCount.c === 0) {
 // course name through the UI, leave it alone.
 db.prepare("UPDATE settings SET value = 'Tarry Brae Golf Course' WHERE key = 'course_name' AND value = 'Lochmor Golf Club'").run();
 
+// One-time backfill: convert existing HTML-bodied inbox messages to plain
+// text. Some clients (Apple Mail, etc.) deliver HTML-only payloads and the
+// Cloudflare worker stored them raw before we added the htmlToText pass.
+// Guarded by a settings flag so it only runs once.
+const inboxStripDone = db.prepare("SELECT value FROM settings WHERE key = 'inbox_html_stripped_v1'").get();
+if (!inboxStripDone) {
+  try {
+    const { htmlToText } = require('../services/html-utils');
+    const rows = db.prepare("SELECT id, body FROM inbox_messages WHERE body LIKE '%<%>%'").all();
+    const upd = db.prepare('UPDATE inbox_messages SET body = ? WHERE id = ?');
+    const tx = db.transaction(() => {
+      for (const r of rows) upd.run(htmlToText(r.body), r.id);
+      db.prepare("INSERT INTO settings (key, value) VALUES ('inbox_html_stripped_v1', 'true')").run();
+    });
+    tx();
+    if (rows.length) console.log('[Migration] Stripped HTML from', rows.length, 'inbox messages');
+  } catch (err) {
+    console.error('[Migration] inbox HTML strip failed:', err.message);
+  }
+}
+
 // One-time migration: normalize tournament_date to match the hard-coded
 // sub-header format (no ordinal suffix). Only touches the old default.
 db.prepare("UPDATE settings SET value = 'Friday, July 3, 2026' WHERE key = 'tournament_date' AND value = 'Friday, July 3rd, 2026'").run();
