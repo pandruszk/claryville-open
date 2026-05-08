@@ -187,6 +187,7 @@ try { db.exec('ALTER TABLE draft_replies ADD COLUMN needs_review INTEGER DEFAULT
 try { db.exec('ALTER TABLE players ADD COLUMN display_name TEXT'); } catch (e) { /* already exists */ }
 try { db.exec('ALTER TABLE groups ADD COLUMN tee_order INTEGER'); } catch (e) { /* already exists */ }
 try { db.exec('ALTER TABLE distribution_list ADD COLUMN rules_committee INTEGER NOT NULL DEFAULT 0'); } catch (e) { /* already exists */ }
+try { db.exec('ALTER TABLE emails_sent ADD COLUMN scheduled_at TEXT'); } catch (e) { /* already exists */ }
 
 // Seed default settings if empty
 const settingsCount = db.prepare('SELECT COUNT(*) as c FROM settings').get();

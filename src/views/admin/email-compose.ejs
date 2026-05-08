@@ -84,12 +84,22 @@
     <h2>Sent Emails</h2>
     <table class="admin-table">
       <thead>
-        <tr><th>Date</th><th>Subject</th><th>Recipients</th></tr>
+        <tr><th>Send time</th><th>Subject</th><th>Recipients</th></tr>
       </thead>
       <tbody>
         <% for (const e of sentEmails) { %>
+          <% const scheduled = e.scheduled_at ? new Date(e.scheduled_at) : null;
+             const queued = new Date(e.sent_at + (e.sent_at && !e.sent_at.endsWith('Z') ? 'Z' : ''));
+             const isFuture = scheduled && scheduled.getTime() > Date.now(); %>
           <tr>
-            <td><%= new Date(e.sent_at).toLocaleDateString() %></td>
+            <td>
+              <% if (scheduled) { %>
+                <span class="badge <%= isFuture ? 'badge-needs-review' : 'badge-complete' %>" style="margin-right:0.4rem"><%= isFuture ? 'Scheduled' : 'Sent' %></span>
+                <%= scheduled.toLocaleString() %>
+              <% } else { %>
+                <%= queued.toLocaleString() %>
+              <% } %>
+            </td>
             <td><%= e.subject %></td>
             <td><%= e.recipient_count %></td>
           </tr>

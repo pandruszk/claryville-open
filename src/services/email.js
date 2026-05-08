@@ -94,8 +94,8 @@ const EmailService = {
       }
     }
 
-    db.prepare('INSERT INTO emails_sent (subject, body, recipient_count) VALUES (?, ?, ?)')
-      .run(subject, html, sent);
+    db.prepare('INSERT INTO emails_sent (subject, body, recipient_count, scheduled_at) VALUES (?, ?, ?, ?)')
+      .run(subject, html, sent, opts.scheduledAt || null);
 
     return sent;
   },
@@ -120,13 +120,13 @@ const EmailService = {
       if (opts.scheduledAt) params.scheduledAt = opts.scheduledAt;
       const { data, error } = await client.emails.send(params);
       if (error) throw error;
-      db.prepare('INSERT INTO emails_sent (subject, body, recipient_count) VALUES (?, ?, ?)')
-        .run(subject, html, recipients.length);
+      db.prepare('INSERT INTO emails_sent (subject, body, recipient_count, scheduled_at) VALUES (?, ?, ?, ?)')
+        .run(subject, html, recipients.length, opts.scheduledAt || null);
       return recipients.length;
     } catch (err) {
       console.error('[Email] Group send error:', err.message || err);
-      db.prepare('INSERT INTO emails_sent (subject, body, recipient_count) VALUES (?, ?, ?)')
-        .run(subject, html, 0);
+      db.prepare('INSERT INTO emails_sent (subject, body, recipient_count, scheduled_at) VALUES (?, ?, ?, ?)')
+        .run(subject, html, 0, opts.scheduledAt || null);
       throw err;
     }
   },
