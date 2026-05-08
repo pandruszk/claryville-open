@@ -20,6 +20,16 @@
 <section class="admin-section">
   <h2>Compose Email</h2>
 
+  <div class="ai-draft-section" style="margin-bottom: 1.25rem; padding: 0.85rem 1rem; background: var(--gray-50, #f5f5f5); border: 1px solid var(--gray-200, #e5e5e5); border-radius: 8px;">
+    <strong style="display:block;margin-bottom:0.35rem">Draft from notes</strong>
+    <p class="form-hint" style="margin:0 0 0.5rem 0">Paste an idea, a forwarded email, or a few bullet points. The AI fills in the subject and body for you to edit.</p>
+    <textarea id="ai-notes" rows="4" style="width:100%;font-family:inherit" placeholder="e.g. Matt forwarded that the merch shop is open through June 1 — claryvillecountryclub.teecommerce.shop. Good moment to nudge people to register too."></textarea>
+    <div style="margin-top:0.5rem;display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+      <button type="button" id="ai-generate-btn" class="btn btn-small btn-primary" onclick="generateFromNotes()">Generate</button>
+      <span id="ai-generate-status" style="color:var(--gray-500, #6b7280);font-size:0.85rem"></span>
+    </div>
+  </div>
+
   <div class="email-templates">
     <strong>Quick templates:</strong>
     <button class="btn btn-small" onclick="loadTemplate('save-the-date')">Save the Date</button>
@@ -129,4 +139,36 @@ function confirmSend() {
 
 // Initialize label on page load in case the selected option isn't the default
 updateSendLabel();
+
+async function generateFromNotes() {
+  const notes = document.getElementById('ai-notes').value.trim();
+  const status = document.getElementById('ai-generate-status');
+  const btn = document.getElementById('ai-generate-btn');
+  if (!notes) { status.textContent = 'Paste some notes first.'; return; }
+
+  btn.disabled = true;
+  status.textContent = 'Drafting…';
+  const csrf = document.querySelector('input[name="_csrf"]').value;
+
+  try {
+    const resp = await fetch('/admin/email/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
+      body: JSON.stringify({ notes })
+    });
+    if (!resp.ok) {
+      const text = await resp.text();
+      throw new Error(text || ('HTTP ' + resp.status));
+    }
+    const { subject, body_html } = await resp.json();
+    document.getElementById('subject').value = subject || '';
+    document.getElementById('body').value = body_html || '';
+    updatePreview();
+    status.textContent = 'Drafted. Edit subject/body, pick audience, then send.';
+  } catch (err) {
+    status.textContent = 'Error: ' + err.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
 </script>

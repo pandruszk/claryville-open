@@ -309,6 +309,71 @@ router.get('/contacts', (req, res) => {
   res.render('admin/contacts', { distList, clans, committeeCount });
 });
 
+// Generate a broadcast email subject + body from rough notes the admin
+// pastes into the compose page. Calls Anthropic with a tool-use shape so
+// the response is always { subject, body_html }.
+router.post('/email/generate', express.json(), async (req, res) => {
+  const notes = (req.body && typeof req.body.notes === 'string' ? req.body.notes : '').trim();
+  if (!notes) return res.status(400).json({ error: 'notes required' });
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res.status(503).json({ error: 'AI not configured (ANTHROPIC_API_KEY missing)' });
+  }
+
+  try {
+    const Anthropic = require('@anthropic-ai/sdk').default;
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+    const settings = getSettings();
+    const tournamentDate = settings.tournament_date || 'Friday, July 3, 2026';
+    const courseName = settings.course_name || 'Tarry Brae Golf Course';
+
+    const systemPrompt = `You write broadcast emails for the Claryville Open, an annual family golf tournament held ${tournamentDate} at ${courseName}. The audience is the family + friends distribution list — ~55 people who have been part of this tournament for 30+ years.
+
+TONE
+- Warm, casual, family-friendly. Light humor is fine but don't try too hard.
+- Keep it short — typically 2 to 5 short paragraphs.
+- Sign off with "— Pete" for friendly updates, or "— The Claryville Open Committee" for official announcements. Choose based on the content.
+
+FORMAT
+- Output the body as HTML.
+- Wrap each paragraph in <p style="margin:0 0 1em 0;"> so spacing renders in email clients (which often strip stylesheets).
+- Use <strong> for emphasis and <a href="..."> for links.
+- Use <ul><li>...</li></ul> for short bullet lists when appropriate. Style the <ul> with margin:0 0 1em 0.
+- Do NOT include <html>, <body>, or <h1> tags — the email service wraps the body.
+- Do NOT put quotes around the subject. Subject is plain text.
+
+WHAT YOU GET
+- The user pastes rough notes, a forwarded message, or a few bullet points. Turn it into a polished email. Paraphrase forwarded text rather than quoting verbatim. If the notes mention a deadline or call to action, surface it clearly. If a URL is mentioned, include it as a clickable link.`;
+
+    const msg = await client.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 1500,
+      system: systemPrompt,
+      tools: [{
+        name: 'compose_email',
+        description: 'Compose a broadcast email subject and body for the Claryville Open distribution list.',
+        input_schema: {
+          type: 'object',
+          properties: {
+            subject: { type: 'string', description: 'Concise subject line. No surrounding quotes.' },
+            body_html: { type: 'string', description: 'HTML body using inline <p style="margin:0 0 1em 0;"> for paragraphs.' },
+          },
+          required: ['subject', 'body_html'],
+        },
+      }],
+      tool_choice: { type: 'tool', name: 'compose_email' },
+      messages: [{ role: 'user', content: notes }],
+    });
+
+    const toolUse = msg.content.find(c => c.type === 'tool_use');
+    if (!toolUse) return res.status(500).json({ error: 'AI returned no draft' });
+    res.json({ subject: toolUse.input.subject, body_html: toolUse.input.body_html });
+  } catch (err) {
+    console.error('[Admin/email/generate] error:', err.message || err);
+    res.status(500).json({ error: err.message || 'AI error' });
+  }
+});
+
 router.post('/email/send', express.urlencoded({ extended: true }), async (req, res) => {
   const { subject, body } = req.body;
   const audience = req.body.audience || 'all';
