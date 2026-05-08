@@ -377,6 +377,21 @@ WHAT YOU GET
 router.post('/email/send', express.urlencoded({ extended: true }), async (req, res) => {
   const { subject, body } = req.body;
   const audience = req.body.audience || 'all';
+  const scheduledAtRaw = (req.body.scheduled_at || '').trim();
+
+  // Validate scheduled_at if present — must be a parseable ISO timestamp at
+  // least a minute in the future.
+  let scheduledAt = null;
+  if (scheduledAtRaw) {
+    const d = new Date(scheduledAtRaw);
+    if (isNaN(d.getTime())) {
+      return res.status(400).send('Invalid scheduled time.');
+    }
+    if (d.getTime() < Date.now() + 60_000) {
+      return res.status(400).send('Scheduled time must be at least a minute in the future.');
+    }
+    scheduledAt = d.toISOString();
+  }
 
   let rows;
   if (audience === 'all') {
@@ -399,9 +414,9 @@ router.post('/email/send', express.urlencoded({ extended: true }), async (req, r
   // reply-all loops in the whole committee. Broadcasts (all, clan) stay
   // per-recipient so addresses aren't exposed across the distribution list.
   if (audience === 'committee') {
-    await EmailService.sendGroup(recipients, subject, body);
+    await EmailService.sendGroup(recipients, subject, body, { scheduledAt });
   } else {
-    await EmailService.sendBulk(recipients, subject, body);
+    await EmailService.sendBulk(recipients, subject, body, { scheduledAt });
   }
   res.redirect('/admin/email');
 });

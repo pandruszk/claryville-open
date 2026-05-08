@@ -61,6 +61,19 @@
       <label>Preview</label>
       <div id="preview" class="email-preview"></div>
     </div>
+    <div class="form-group">
+      <label>Send time</label>
+      <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">
+        <label style="display:inline-flex;align-items:center;gap:0.35rem;font-weight:normal;margin:0">
+          <input type="radio" name="send_time" value="now" checked onchange="toggleScheduled()"> Now
+        </label>
+        <label style="display:inline-flex;align-items:center;gap:0.35rem;font-weight:normal;margin:0">
+          <input type="radio" name="send_time" value="scheduled" onchange="toggleScheduled()"> Schedule for later
+        </label>
+        <input type="datetime-local" id="scheduled-at-input" name="scheduled_at" disabled style="font-family:inherit">
+        <span id="scheduled-tz-hint" style="color:var(--gray-500, #6b7280);font-size:0.85rem"></span>
+      </div>
+    </div>
     <button type="submit" class="btn btn-primary" id="send-btn">Send to All (<%= emailCount %>)</button>
   </form>
 </section>
@@ -127,14 +140,48 @@ document.getElementById('body')?.addEventListener('input', updatePreview);
 function updateSendLabel() {
   const sel = document.getElementById('audience');
   const opt = sel.options[sel.selectedIndex];
-  const label = opt.textContent;
-  document.getElementById('send-btn').textContent = 'Send — ' + label;
+  const sched = document.querySelector('input[name="send_time"]:checked')?.value === 'scheduled';
+  document.getElementById('send-btn').textContent = (sched ? 'Schedule — ' : 'Send — ') + opt.textContent;
+}
+
+function toggleScheduled() {
+  const isScheduled = document.querySelector('input[name="send_time"]:checked')?.value === 'scheduled';
+  const input = document.getElementById('scheduled-at-input');
+  const hint = document.getElementById('scheduled-tz-hint');
+  input.disabled = !isScheduled;
+  if (isScheduled && !input.value) {
+    // Default: tomorrow at 9am in the browser's local timezone
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(9, 0, 0, 0);
+    const pad = n => String(n).padStart(2, '0');
+    input.value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate())
+      + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+  hint.textContent = isScheduled
+    ? '(' + Intl.DateTimeFormat().resolvedOptions().timeZone + ')'
+    : '';
+  updateSendLabel();
 }
 
 function confirmSend() {
   const sel = document.getElementById('audience');
   const opt = sel.options[sel.selectedIndex];
-  return confirm('Send this email to: ' + opt.textContent + '?');
+  const isScheduled = document.querySelector('input[name="send_time"]:checked')?.value === 'scheduled';
+  const input = document.getElementById('scheduled-at-input');
+  let timeText = 'now';
+  if (isScheduled) {
+    if (!input.value) { alert('Pick a date and time, or switch to Send now.'); return false; }
+    const d = new Date(input.value); // datetime-local interpreted as local time
+    if (isNaN(d.getTime())) { alert('That date/time is invalid.'); return false; }
+    if (d.getTime() < Date.now() + 60000) { alert('Scheduled time must be at least a minute in the future.'); return false; }
+    timeText = 'scheduled for ' + d.toLocaleString();
+    input.value = d.toISOString(); // convert to UTC for the server
+  } else {
+    input.value = '';
+    input.disabled = true; // disabled inputs aren't submitted
+  }
+  return confirm('Send to ' + opt.textContent + ' — ' + timeText + '?');
 }
 
 // Initialize label on page load in case the selected option isn't the default
