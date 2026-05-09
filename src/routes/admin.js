@@ -298,7 +298,13 @@ router.get('/email', (req, res) => {
       count: byClan[name],
     })),
   ];
-  res.render('admin/email-compose', { sentEmails, emailCount: total, audienceOptions });
+  const recentEvents = db.prepare(
+    "SELECT event_type, recipient, subject, occurred_at FROM email_events ORDER BY occurred_at DESC LIMIT 30"
+  ).all();
+  const eventStats = db.prepare(
+    "SELECT event_type, COUNT(*) AS c FROM email_events WHERE received_at >= datetime('now', '-30 days') GROUP BY event_type"
+  ).all().reduce((a, r) => (a[r.event_type] = r.c, a), {});
+  res.render('admin/email-compose', { sentEmails, emailCount: total, audienceOptions, recentEvents, eventStats });
 });
 
 // Distribution list / Contacts

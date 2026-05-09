@@ -175,6 +175,20 @@ db.exec(`
     reviewed INTEGER NOT NULL DEFAULT 0
   );
   CREATE INDEX IF NOT EXISTS idx_careers_applications_created_at ON careers_applications(created_at);
+
+  CREATE TABLE IF NOT EXISTS email_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    resend_id TEXT NOT NULL,
+    event_type TEXT NOT NULL,
+    recipient TEXT,
+    subject TEXT,
+    occurred_at TEXT NOT NULL,
+    payload_json TEXT,
+    received_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_email_events_resend ON email_events(resend_id);
+  CREATE INDEX IF NOT EXISTS idx_email_events_received ON email_events(received_at);
+  CREATE INDEX IF NOT EXISTS idx_email_events_type ON email_events(event_type);
 `);
 
 // Prune sessions older than 30 days on boot (cheap housekeeping, keeps the table small)

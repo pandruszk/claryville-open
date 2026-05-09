@@ -90,6 +90,65 @@ app.post('/webhook/email', express.json({ limit: '5mb' }), async (req, res) => {
   }
 });
 
+// Resend email-events webhook (delivered / opened / clicked / bounced / complained)
+// Signed with Svix HMAC-SHA256. Raw body required for signature verification.
+app.post('/webhook/resend', express.raw({ type: '*/*' }), (req, res) => {
+  const secret = process.env.RESEND_WEBHOOK_SECRET;
+  if (!secret) return res.status(503).send('webhook secret not configured');
+
+  const svixId = req.header('svix-id');
+  const svixTs = req.header('svix-timestamp');
+  const svixSig = req.header('svix-signature');
+  if (!svixId || !svixTs || !svixSig) return res.status(400).send('missing svix headers');
+
+  // Reject replays older than 5 minutes
+  const tsNum = parseInt(svixTs, 10);
+  if (!tsNum || Math.abs(Date.now() / 1000 - tsNum) > 300) {
+    return res.status(400).send('timestamp out of range');
+  }
+
+  const rawBody = req.body.toString('utf8');
+  const cleanSecret = secret.startsWith('whsec_') ? secret.slice('whsec_'.length) : secret;
+  const secretBytes = Buffer.from(cleanSecret, 'base64');
+  const expected = 'v1,' + crypto.createHmac('sha256', secretBytes)
+    .update(`${svixId}.${svixTs}.${rawBody}`)
+    .digest('base64');
+
+  // svix-signature can contain multiple space-separated entries (key rotation)
+  const presented = svixSig.split(' ');
+  const ok = presented.some(s => {
+    if (s.length !== expected.length) return false;
+    try { return crypto.timingSafeEqual(Buffer.from(s), Buffer.from(expected)); }
+    catch { return false; }
+  });
+  if (!ok) return res.status(401).send('invalid signature');
+
+  let event;
+  try { event = JSON.parse(rawBody); }
+  catch { return res.status(400).send('invalid json'); }
+
+  // Persist the event. Resend payload shape:
+  //   { type: "email.opened", created_at: "...", data: { email_id, to, from, subject, ... } }
+  const data = event.data || {};
+  const recipient = Array.isArray(data.to) ? data.to[0] : (data.to || null);
+  try {
+    db.prepare(
+      'INSERT INTO email_events (resend_id, event_type, recipient, subject, occurred_at, payload_json) VALUES (?, ?, ?, ?, ?, ?)'
+    ).run(
+      data.email_id || null,
+      event.type || 'unknown',
+      recipient,
+      data.subject || null,
+      event.created_at || new Date().toISOString(),
+      rawBody
+    );
+  } catch (err) {
+    console.error('[Resend webhook] insert error:', err.message);
+  }
+
+  res.status(204).send();
+});
+
 // Telnyx SMS webhook
 app.post('/webhook/sms', express.json(), async (req, res) => {
   const event = req.body?.data;

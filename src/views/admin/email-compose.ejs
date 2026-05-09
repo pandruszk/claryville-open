@@ -79,6 +79,39 @@
   </form>
 </section>
 
+<% if (recentEvents && recentEvents.length > 0) { %>
+  <section class="admin-section">
+    <h2>Recent Activity</h2>
+    <p class="form-hint" style="margin-top:0">Last 30 days:
+      <strong><%= eventStats['email.delivered'] || 0 %></strong> delivered ·
+      <strong><%= eventStats['email.opened'] || 0 %></strong> opens ·
+      <strong><%= eventStats['email.clicked'] || 0 %></strong> clicks ·
+      <strong><%= eventStats['email.bounced'] || 0 %></strong> bounces ·
+      <strong><%= eventStats['email.complained'] || 0 %></strong> complaints
+    </p>
+    <table class="admin-table">
+      <thead>
+        <tr><th>When</th><th>Event</th><th>Recipient</th><th>Subject</th></tr>
+      </thead>
+      <tbody>
+        <% for (const ev of recentEvents) { %>
+          <% const label = (ev.event_type || '').replace('email.', '');
+             const cls = label === 'opened' ? 'badge-complete'
+                       : label === 'clicked' ? 'badge-complete'
+                       : label === 'bounced' || label === 'complained' ? 'badge-needs-review'
+                       : 'badge-draft-pending'; %>
+          <tr>
+            <td><%= new Date(ev.occurred_at).toLocaleString() %></td>
+            <td><span class="badge <%= cls %>"><%= label %></span></td>
+            <td><%= ev.recipient || '—' %></td>
+            <td><%= ev.subject || '—' %></td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </section>
+<% } %>
+
 <% if (sentEmails.length > 0) { %>
   <section class="admin-section">
     <h2>Sent Emails</h2>
