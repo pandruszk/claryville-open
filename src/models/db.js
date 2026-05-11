@@ -189,6 +189,19 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_email_events_resend ON email_events(resend_id);
   CREATE INDEX IF NOT EXISTS idx_email_events_received ON email_events(received_at);
   CREATE INDEX IF NOT EXISTS idx_email_events_type ON email_events(event_type);
+
+  CREATE TABLE IF NOT EXISTS pending_actions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    inbox_message_id INTEGER REFERENCES inbox_messages(id) ON DELETE CASCADE,
+    action_type TEXT NOT NULL,
+    payload_json TEXT NOT NULL,
+    rationale TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    resolved_at TEXT
+  );
+  CREATE INDEX IF NOT EXISTS idx_pending_actions_status ON pending_actions(status);
+  CREATE INDEX IF NOT EXISTS idx_pending_actions_inbox ON pending_actions(inbox_message_id);
 `);
 
 // Prune sessions older than 30 days on boot (cheap housekeeping, keeps the table small)

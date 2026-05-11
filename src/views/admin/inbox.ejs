@@ -25,6 +25,7 @@
   <span class="draft-stat"><strong><%= draftStats.pending %></strong> pending drafts</span>
   <span class="draft-stat"><strong><%= draftStats.needsReview %></strong> needs review</span>
   <span class="draft-stat"><strong><%= draftStats.ruleSuggestions %></strong> rule suggestions</span>
+  <span class="draft-stat"><strong><%= typeof pendingActionsCount !== 'undefined' ? pendingActionsCount : 0 %></strong> proposed actions</span>
   <span class="draft-stat"><strong><%= draftStats.sent %></strong> sent</span>
 </div>
 
@@ -69,6 +70,16 @@
           <td class="actions">
             <button class="btn btn-small" onclick="toggleBody(<%= msg.id %>)">View</button>
             <a href="/admin/inbox/<%= msg.id %>/draft" class="btn btn-small">Reply</a>
+            <% if ((msg.pendingActions || []).length > 0) { %>
+              <button class="btn btn-small btn-primary" onclick="toggleActions(<%= msg.id %>)">
+                AI proposals (<%= msg.pendingActions.length %>)
+              </button>
+            <% } else { %>
+              <form method="POST" action="/admin/inbox/<%= msg.id %>/extract-actions" class="form-inline">
+                <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+                <button type="submit" class="btn btn-small">Suggest contacts</button>
+              </form>
+            <% } %>
             <% if (!msg.processed) { %>
               <form method="POST" action="/admin/inbox/<%= msg.id %>/process" class="form-inline">
                 <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
@@ -84,6 +95,39 @@
         <tr id="body-<%= msg.id %>" class="email-body-row" style="display:none">
           <td colspan="6"><pre class="email-body"><%= msg.body %></pre></td>
         </tr>
+        <% if ((msg.pendingActions || []).length > 0) { %>
+          <tr id="actions-<%= msg.id %>">
+            <td colspan="6" style="background:#fafafa;padding:0.85rem 1rem">
+              <strong style="font-size:0.9rem;display:block;margin-bottom:0.5rem">AI proposed actions — review before approving</strong>
+              <% for (const a of msg.pendingActions) { %>
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:center;padding:0.4rem 0;border-top:1px solid #eee">
+                  <% if (a.action_type === 'add_contact') { %>
+                    <span style="flex:1 1 auto">
+                      <strong>Add contact:</strong>
+                      <%= a.payload.first_name || '' %> <%= a.payload.last_name || '' %>
+                      &lt;<%= a.payload.email %>&gt;
+                      <% if (a.payload.clan) { %><span style="color:#6b7280">· clan: <%= a.payload.clan %></span><% } %>
+                      <% if (a.payload.rules_committee) { %><span class="badge badge-rule">rules committee</span><% } %>
+                      <% if (a.rationale) { %>
+                        <div style="color:#6b7280;font-size:0.85rem;margin-top:0.15rem"><%= a.rationale %></div>
+                      <% } %>
+                    </span>
+                  <% } else { %>
+                    <span style="flex:1 1 auto"><%= a.action_type %>: <%= a.payload_json %></span>
+                  <% } %>
+                  <form method="POST" action="/admin/actions/<%= a.id %>/approve" class="form-inline">
+                    <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+                    <button type="submit" class="btn btn-small btn-primary">Approve</button>
+                  </form>
+                  <form method="POST" action="/admin/actions/<%= a.id %>/reject" class="form-inline">
+                    <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+                    <button type="submit" class="btn btn-small">Reject</button>
+                  </form>
+                </div>
+              <% } %>
+            </td>
+          </tr>
+        <% } %>
       <% } %>
     </tbody>
   </table>
@@ -93,5 +137,9 @@
 function toggleBody(id) {
   const row = document.getElementById('body-' + id);
   row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
+function toggleActions(id) {
+  const row = document.getElementById('actions-' + id);
+  if (row) row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
 }
 </script>

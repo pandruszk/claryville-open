@@ -153,11 +153,22 @@ router.post('/players/:id/delete', (req, res) => {
 router.get('/inbox', (req, res) => {
   const messages = InboxService.getAll();
   const draftStats = AutoReplyService.getStats();
-  // Attach draft to each message
+  // Attach draft and pending AI-proposed actions to each message
+  const pendingActions = db.prepare(
+    "SELECT id, inbox_message_id, action_type, payload_json, rationale, created_at FROM pending_actions WHERE status = 'pending' ORDER BY id"
+  ).all();
+  const actionsByMsg = new Map();
+  for (const a of pendingActions) {
+    try { a.payload = JSON.parse(a.payload_json); } catch { a.payload = {}; }
+    if (!actionsByMsg.has(a.inbox_message_id)) actionsByMsg.set(a.inbox_message_id, []);
+    actionsByMsg.get(a.inbox_message_id).push(a);
+  }
   for (const msg of messages) {
     msg.draft = AutoReplyService.getDraftByMessageId(msg.id);
+    msg.pendingActions = actionsByMsg.get(msg.id) || [];
   }
-  res.render('admin/inbox', { messages, draftStats });
+  const pendingActionsCount = pendingActions.length;
+  res.render('admin/inbox', { messages, draftStats, pendingActionsCount });
 });
 
 router.post('/inbox/:id/process', (req, res) => {
@@ -645,6 +656,56 @@ router.post('/careers/:id/reviewed', (req, res) => {
 router.post('/careers/:id/delete', (req, res) => {
   db.prepare('DELETE FROM careers_applications WHERE id = ?').run(req.params.id);
   res.redirect('/admin/careers');
+});
+
+// Pending actions — proposals the AI extractor made from inbound emails.
+// One-click approve actually mutates the relevant table; reject just marks it.
+router.post('/actions/:id/approve', (req, res) => {
+  const action = db.prepare('SELECT * FROM pending_actions WHERE id = ? AND status = ?').get(req.params.id, 'pending');
+  if (!action) return res.redirect('/admin/inbox');
+  try {
+    const payload = JSON.parse(action.payload_json);
+    if (action.action_type === 'add_contact') {
+      const email = (payload.email || '').trim();
+      if (!email) throw new Error('action payload missing email');
+      // Idempotent insert — INSERT OR IGNORE on the unique email constraint
+      db.prepare(
+        'INSERT OR IGNORE INTO distribution_list (first_name, last_name, email, clan, rules_committee) VALUES (?, ?, ?, ?, ?)'
+      ).run(
+        payload.first_name || null,
+        payload.last_name || null,
+        email,
+        payload.clan || null,
+        payload.rules_committee ? 1 : 0
+      );
+    } else {
+      throw new Error('unknown action_type: ' + action.action_type);
+    }
+    db.prepare("UPDATE pending_actions SET status = 'approved', resolved_at = datetime('now') WHERE id = ?").run(action.id);
+  } catch (err) {
+    console.error('[Admin] approve action error:', err.message);
+  }
+  res.redirect('/admin/inbox');
+});
+
+router.post('/actions/:id/reject', (req, res) => {
+  db.prepare("UPDATE pending_actions SET status = 'rejected', resolved_at = datetime('now') WHERE id = ? AND status = 'pending'").run(req.params.id);
+  res.redirect('/admin/inbox');
+});
+
+// Re-run the AI extractor against a specific inbox message — useful for
+// messages that came in before this feature existed, or to retry after
+// fixing context.
+router.post('/inbox/:id/extract-actions', async (req, res) => {
+  const message = db.prepare('SELECT id, from_addr, subject, body FROM inbox_messages WHERE id = ?').get(req.params.id);
+  if (!message) return res.redirect('/admin/inbox');
+  try {
+    const { extractActions } = require('../services/action-extractor');
+    await extractActions(message);
+  } catch (err) {
+    console.error('[Admin] extract-actions error:', err.message);
+  }
+  res.redirect('/admin/inbox');
 });
 
 // Chat log — shows questions asked of the AI caddy on /questions

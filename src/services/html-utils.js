@@ -13,8 +13,10 @@ function htmlToText(input) {
     // Preserve structural breaks
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/(p|div|li|tr|h[1-6]|blockquote)>/gi, '\n')
-    // Strip remaining tags
-    .replace(/<[^>]+>/g, '')
+    // Strip remaining HTML tags. Match only things that look like real tags
+    // (start with a letter or '/') — leaves plain-text <email@x.com> alone,
+    // which email clients often use in visible "Name <addr>" recipient lists.
+    .replace(/<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^>]*)?>/g, '')
     // Decode common HTML entities
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')

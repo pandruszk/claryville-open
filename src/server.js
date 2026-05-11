@@ -83,6 +83,18 @@ app.post('/webhook/email', express.json({ limit: '5mb' }), async (req, res) => {
     const AutoReplyService = require('./services/auto-reply');
     await AutoReplyService.processNewMessages();
 
+    // Extract proposed actions (e.g. add_contact) from the new message for
+    // admin approval. Failures here must not break the webhook response.
+    try {
+      const { extractActions } = require('./services/action-extractor');
+      const latest = db.prepare(
+        'SELECT id, from_addr, subject, body FROM inbox_messages ORDER BY id DESC LIMIT 1'
+      ).get();
+      if (latest) await extractActions(latest);
+    } catch (err) {
+      console.error('[Webhook] action extraction failed:', err.message);
+    }
+
     res.json({ received: true });
   } catch (err) {
     console.error('[Webhook] Email error:', err.message);
