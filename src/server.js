@@ -47,6 +47,16 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Tighter limit specifically for the open newsletter signup, which was being
+// targeted by list-bombing bots. Real users sign up once.
+const subscribeLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3,
+  message: 'Too many subscription attempts. Please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Stripe webhook needs raw body — must come before express.json()
 app.post('/webhook/stripe', express.raw({ type: 'application/json' }), (req, res) => {
   try {
@@ -274,6 +284,10 @@ app.use((req, res, next) => {
   next();
 });
 
+// Expose query params to all views (used by the footer-signup feedback
+// banner in layout.ejs).
+app.use((req, res, next) => { res.locals.query = req.query || {}; next(); });
+
 // EJS setup with layout support
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
@@ -302,7 +316,7 @@ app.use((req, res, next) => {
 // Routes
 // Apply rate limiting to form endpoints
 app.use('/register', formLimiter);
-app.use('/subscribe', formLimiter);
+app.use('/subscribe', subscribeLimiter);
 app.use('/admin/login', loginLimiter);
 
 app.use('/', require('./routes/public'));

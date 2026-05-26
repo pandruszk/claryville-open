@@ -202,7 +202,20 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_pending_actions_status ON pending_actions(status);
   CREATE INDEX IF NOT EXISTS idx_pending_actions_inbox ON pending_actions(inbox_message_id);
+
+  CREATE TABLE IF NOT EXISTS pending_subscriptions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL,
+    token TEXT NOT NULL UNIQUE,
+    ip TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS idx_pending_subscriptions_email ON pending_subscriptions(email);
+  CREATE INDEX IF NOT EXISTS idx_pending_subscriptions_created ON pending_subscriptions(created_at);
 `);
+
+// Prune pending subscriptions older than 7 days on boot
+db.prepare("DELETE FROM pending_subscriptions WHERE created_at < datetime('now', '-7 days')").run();
 
 // Prune sessions older than 30 days on boot (cheap housekeeping, keeps the table small)
 db.prepare("DELETE FROM sessions WHERE updated_at < datetime('now', '-30 days')").run();

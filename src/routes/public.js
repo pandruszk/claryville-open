@@ -412,13 +412,82 @@ router.post('/careers/apply', express.urlencoded({ extended: true }), (req, res)
   res.redirect('/careers?success=1');
 });
 
-router.post('/subscribe', express.urlencoded({ extended: true }), (req, res) => {
-  const email = req.body.email?.trim();
-  if (!email) return res.redirect(req.get('referer') || '/');
+// Newsletter signup — uses double opt-in: the POST inserts a pending row
+// and emails the address a confirmation link. The address only joins the
+// distribution_list when the link is clicked.
+router.post('/subscribe', express.urlencoded({ extended: true }), async (req, res) => {
+  const refererBack = (req.get('referer') || '/');
+  const redirectWith = key => res.redirect(refererBack + (refererBack.includes('?') ? '&' : '?') + key);
+
+  // Honeypot: bots fill in any input they see; the visible form omits this
+  // field, so a non-empty value means a bot. Silently accept (return success
+  // page) to avoid teaching the bot what worked.
+  if (req.body.website && String(req.body.website).trim() !== '') {
+    return redirectWith('check_email=1');
+  }
+
+  const email = (req.body.email || '').trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return redirectWith('subscribe_error=1');
+  }
+
+  // Already on the distribution list? Treat as success, no email sent.
+  const existing = db.prepare('SELECT 1 FROM distribution_list WHERE lower(email) = ?').get(email);
+  if (existing) return redirectWith('check_email=1');
+
+  // Upsert pending row with a fresh token, then send the confirmation email.
+  const token = crypto.randomBytes(32).toString('hex');
+  const ip = (req.headers['x-forwarded-for'] || req.ip || '').toString().split(',')[0].trim() || null;
   try {
-    db.prepare('INSERT OR IGNORE INTO distribution_list (email) VALUES (?)').run(email);
-  } catch (err) { /* duplicate, ignore */ }
-  res.redirect((req.get('referer') || '/') + (req.get('referer')?.includes('?') ? '&' : '?') + 'subscribed=1');
+    db.prepare(
+      "INSERT INTO pending_subscriptions (email, token, ip) VALUES (?, ?, ?) " +
+      "ON CONFLICT(email) DO UPDATE SET token = excluded.token, ip = excluded.ip, created_at = datetime('now')"
+    ).run(email, token, ip);
+  } catch (err) {
+    console.error('[Subscribe] insert error:', err.message);
+    return redirectWith('subscribe_error=1');
+  }
+
+  const base = process.env.BASE_URL || 'https://claryvilleopen.com';
+  const confirmUrl = `${base}/subscribe/confirm?token=${token}`;
+  try {
+    await EmailService.sendOne(
+      email,
+      'Confirm your Claryville Open subscription',
+      `<p style="margin:0 0 1em 0;">Thanks for signing up to get Claryville Open updates! Click the link below to confirm your subscription:</p>
+       <p style="margin:0 0 1em 0;"><a href="${confirmUrl}" style="background:#0f1d3a;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600">Confirm subscription</a></p>
+       <p style="margin:0 0 1em 0;color:#6b7280;font-size:13px">Or copy and paste this link into your browser:<br><a href="${confirmUrl}">${confirmUrl}</a></p>
+       <p style="margin:0;color:#6b7280;font-size:13px">If you didn't sign up, you can safely ignore this email — without clicking, you won't get added.</p>`
+    );
+  } catch (err) {
+    console.error('[Subscribe] confirmation email failed:', err.message);
+    // Still redirect to "check your email" — don't reveal API failures to the visitor
+  }
+  return redirectWith('check_email=1');
+});
+
+router.get('/subscribe/confirm', (req, res) => {
+  const token = (req.query.token || '').toString().trim();
+  if (!token) return res.status(400).send('Missing confirmation token.');
+
+  const pending = db.prepare('SELECT email, created_at FROM pending_subscriptions WHERE token = ?').get(token);
+  if (!pending) return res.status(400).send('This confirmation link is invalid or expired. Please sign up again.');
+
+  // Expired? (7-day TTL)
+  const ageMs = Date.now() - new Date(pending.created_at + (pending.created_at.endsWith('Z') ? '' : 'Z')).getTime();
+  if (ageMs > 7 * 24 * 60 * 60 * 1000) {
+    db.prepare('DELETE FROM pending_subscriptions WHERE token = ?').run(token);
+    return res.status(400).send('This confirmation link has expired. Please sign up again.');
+  }
+
+  // Idempotent: if already on list, just delete pending row and show success.
+  const tx = db.transaction(() => {
+    db.prepare('INSERT OR IGNORE INTO distribution_list (email) VALUES (?)').run(pending.email);
+    db.prepare('DELETE FROM pending_subscriptions WHERE token = ?').run(token);
+  });
+  tx();
+
+  res.redirect('/?subscribed=1');
 });
 
 module.exports = router;

@@ -50,6 +50,17 @@
       <span class="sub-header-details">Tarry Brae Golf Course &middot; Friday, July 3, 2026</span>
     </div>
   </div>
+  <% if (locals.query && (locals.query.check_email || locals.query.subscribed || locals.query.subscribe_error)) { %>
+    <div style="background:#f0f9ff;border-bottom:1px solid #bae6fd;padding:0.85rem 1rem;text-align:center;font-size:0.95rem;color:#0c4a6e">
+      <% if (locals.query.check_email) { %>
+        ✉️ Almost there! Check your email and click the confirmation link to finish subscribing.
+      <% } else if (locals.query.subscribed) { %>
+        ✅ You're on the list. Thanks for subscribing!
+      <% } else if (locals.query.subscribe_error) { %>
+        ⚠️ That didn't look like a valid email. Please try again.
+      <% } %>
+    </div>
+  <% } %>
   <main>
     <%- body %>
   </main>
@@ -69,6 +80,8 @@
         <p class="footer-signup-label">Stay in the loop</p>
         <form method="POST" action="/subscribe" class="footer-signup-form">
           <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+          <!-- honeypot: real users never see or fill this; bots usually do -->
+          <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-10000px;width:1px;height:1px;opacity:0">
           <input type="email" name="email" placeholder="Your email address" required>
           <button type="submit" class="btn btn-accent btn-small">Sign Up</button>
         </form>
