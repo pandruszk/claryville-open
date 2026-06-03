@@ -79,6 +79,7 @@
             <td><%= p.age || '—' %></td>
             <td><%= p.gender || '—' %></td>
             <td class="actions">
+              <button type="button" class="btn btn-small" onclick="editPlayer(<%= p.id %>)">Edit</button>
               <form method="POST" action="/admin/players/move" class="form-inline">
                 <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
                 <input type="hidden" name="player_id" value="<%= p.id %>">
@@ -142,6 +143,7 @@
                 <td><%= p.gender || '—' %></td>
                 <td title="<%= pBreakdown.join(', ') %>"><%= pStrokes > 0 ? '+' : '' %><%= pStrokes %></td>
                 <td class="actions">
+                  <button type="button" class="btn btn-small" onclick="editPlayer(<%= p.id %>)">Edit</button>
                   <form method="POST" action="/admin/players/move" class="form-inline">
                     <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
                     <input type="hidden" name="player_id" value="<%= p.id %>">
@@ -168,3 +170,73 @@
     </div>
   <% } %>
 </section>
+
+<!-- Edit player modal -->
+<div id="edit-player-modal" class="edit-modal-overlay" style="display:none;">
+  <div class="edit-modal" style="max-width:640px">
+    <h3>Edit Player</h3>
+    <form id="edit-player-form" method="POST">
+      <input type="hidden" name="_csrf" value="<%= locals.csrfToken || "" %>">
+      <div class="form-row">
+        <div class="form-group"><label>Name</label><input type="text" name="name" id="ep-name" required></div>
+        <div class="form-group"><label>Email</label><input type="email" name="email" id="ep-email"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group form-group-small"><label>Age</label><input type="number" name="age" id="ep-age" min="1" max="110"></div>
+        <div class="form-group form-group-small">
+          <label>Gender</label>
+          <select name="gender" id="ep-gender"><option value="">—</option><option value="male">Male</option><option value="female">Female</option></select>
+        </div>
+        <div class="form-group form-group-small"><label>GHIN</label><input type="number" name="ghin_index" id="ep-ghin" step="0.1"></div>
+      </div>
+      <div class="checkbox-grid" style="margin:0.5rem 0">
+        <label class="checkbox-label"><input type="checkbox" name="is_military" id="ep-is_military" value="1"> Military</label>
+        <label class="checkbox-label"><input type="checkbox" name="never_played_course" id="ep-never_played_course" value="1"> Never played on course</label>
+        <label class="checkbox-label"><input type="checkbox" name="heart_attack_stroke_tumor" id="ep-heart_attack_stroke_tumor" value="1"> Heart attack/stroke/tumor</label>
+        <label class="checkbox-label"><input type="checkbox" name="played_high_school_golf" id="ep-played_high_school_golf" value="1"> HS golf team</label>
+        <label class="checkbox-label"><input type="checkbox" name="played_college_golf" id="ep-played_college_golf" value="1"> College golf team</label>
+        <label class="checkbox-label"><input type="checkbox" name="played_pga_lpga" id="ep-played_pga_lpga" value="1"> PGA/LPGA</label>
+        <label class="checkbox-label"><input type="checkbox" name="is_post_partum" id="ep-is_post_partum" value="1"> Post-partum</label>
+        <label class="checkbox-label"><input type="checkbox" name="only_plays_claryville" id="ep-only_plays_claryville" value="1"> Only plays at Claryville Open</label>
+      </div>
+      <div class="actions" style="gap:0.5rem;margin-top:1rem">
+        <button type="submit" class="btn btn-small btn-primary">Save</button>
+        <button type="button" class="btn btn-small" onclick="closeEditPlayer()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// Map of player id -> player record. Serialized safely for inside a <script>
+// block by replacing the only sequence that could break out: '</'.
+const PLAYERS_BY_ID = <%- JSON.stringify(
+  [].concat(
+    ...groups.map(g => g.players),
+    ungrouped
+  ).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+).replace(/</g, '\\u003c') %>;
+
+const BOOL_FIELDS = ['is_military','never_played_course','heart_attack_stroke_tumor','played_high_school_golf','played_college_golf','played_pga_lpga','is_post_partum','only_plays_claryville'];
+
+function editPlayer(id) {
+  const p = PLAYERS_BY_ID[id];
+  if (!p) { alert('Player not found.'); return; }
+  document.getElementById('edit-player-form').action = '/admin/players/' + id + '/edit';
+  document.getElementById('ep-name').value = p.name || '';
+  document.getElementById('ep-email').value = p.email || '';
+  document.getElementById('ep-age').value = p.age || '';
+  document.getElementById('ep-gender').value = p.gender || '';
+  document.getElementById('ep-ghin').value = (p.ghin_index !== null && p.ghin_index !== undefined) ? p.ghin_index : '';
+  for (const f of BOOL_FIELDS) document.getElementById('ep-' + f).checked = !!p[f];
+  document.getElementById('edit-player-modal').style.display = 'flex';
+}
+
+function closeEditPlayer() {
+  document.getElementById('edit-player-modal').style.display = 'none';
+}
+
+document.getElementById('edit-player-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditPlayer();
+});
+</script>

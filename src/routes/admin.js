@@ -142,6 +142,29 @@ router.post('/players/add', express.urlencoded({ extended: true }), (req, res) =
   res.redirect('/admin/groups');
 });
 
+router.post('/players/:id/edit', express.urlencoded({ extended: true }), (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  if (!id) return res.redirect('/admin/groups');
+  const fields = {
+    name: (req.body.name || '').trim() || null,
+    email: (req.body.email || '').trim() || null,
+    phone: (req.body.phone || '').trim() || null,
+    age: req.body.age ? parseInt(req.body.age, 10) : null,
+    gender: (req.body.gender === 'male' || req.body.gender === 'female') ? req.body.gender : null,
+    ghin_index: req.body.ghin_index !== '' && req.body.ghin_index !== undefined ? parseFloat(req.body.ghin_index) : null,
+    is_military: req.body.is_military ? 1 : 0,
+    never_played_course: req.body.never_played_course ? 1 : 0,
+    heart_attack_stroke_tumor: req.body.heart_attack_stroke_tumor ? 1 : 0,
+    played_high_school_golf: req.body.played_high_school_golf ? 1 : 0,
+    played_college_golf: req.body.played_college_golf ? 1 : 0,
+    played_pga_lpga: req.body.played_pga_lpga ? 1 : 0,
+    is_post_partum: req.body.is_post_partum ? 1 : 0,
+    only_plays_claryville: req.body.only_plays_claryville ? 1 : 0,
+  };
+  Players.update(id, fields);
+  res.redirect('/admin/groups');
+});
+
 router.post('/players/:id/delete', (req, res) => {
   const player = Players.getById(req.params.id);
   Players.delete(req.params.id);
