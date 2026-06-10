@@ -130,13 +130,13 @@ function getTeeBox(player) {
   if (age > 0 && age < 10) return 'Orange';
 
   if (gender === 'female') {
-    if (age > 80) return 'Orange';
+    if (age >= 80) return 'Orange';
     return 'Yellow';
   }
 
   // Male
-  if (age > 90) return 'Orange';
-  if (age > 80) return 'Gold';
+  if (age >= 90) return 'Orange';
+  if (age >= 80) return 'Gold';
   if (ghin != null && ghin < 10) return 'Black';
   return 'Green';
 }

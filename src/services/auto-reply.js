@@ -65,10 +65,10 @@ TEAM STROKE RULES (age thresholds are inclusive — "65 or older" means age >= 6
 TEE BOX ASSIGNMENTS:
 - Men with GHIN < 10: Black tees
 - Men: Green tees
-- Men over 80: Gold tees
-- Men over 90: Orange tees
+- Men 80 or older: Gold tees
+- Men 90 or older: Orange tees
 - Women: Yellow tees
-- Women over 80: Orange tees
+- Women 80 or older: Orange tees
 - Kids under 10: Orange tees
 - Only plays golf at Claryville Open: Orange tees
 
