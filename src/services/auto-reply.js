@@ -43,12 +43,12 @@ FORMAT RULES:
 - No gimmes, no mulligans, no cheating.
 - Turn in cards at the Firehouse BBQ.
 
-TEAM STROKE RULES:
-- Over 65: -1 per player (cumulative with other age brackets)
-- Over 75: -1 per player
-- Over 80: -1 per player
-- Over 85: -1 per player
-- Over 90: -1 per player
+TEAM STROKE RULES (age thresholds are inclusive — "65 or older" means age >= 65):
+- Age 65 or older: -1 per player (cumulative with other age brackets)
+- Age 75 or older: -1 per player
+- Age 80 or older: -1 per player
+- Age 85 or older: -1 per player
+- Age 90 or older: -1 per player
 - Female: -2 per player
 - Under 16: -1 per player
 - Under 10: -1 per player (cumulative with under 16)

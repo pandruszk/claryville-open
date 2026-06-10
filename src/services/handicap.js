@@ -12,26 +12,27 @@ function calculatePlayerStrokes(player) {
   let strokes = 0;
   const breakdown = [];
 
-  // Age-based reductions (cumulative — a 92-year-old gets 1+1+1+1+1 = 5)
-  if (age > 90) {
+  // Age-based reductions (cumulative, thresholds inclusive — a 90-year-old
+  // gets 1+1+1+1+1 = 5; an 85-year-old gets 1+1+1+1 = 4)
+  if (age >= 90) {
     strokes -= 1;
-    breakdown.push('-1: over 90');
+    breakdown.push('-1: 90 or older');
   }
-  if (age > 85) {
+  if (age >= 85) {
     strokes -= 1;
-    breakdown.push('-1: over 85');
+    breakdown.push('-1: 85 or older');
   }
-  if (age > 80) {
+  if (age >= 80) {
     strokes -= 1;
-    breakdown.push('-1: over 80');
+    breakdown.push('-1: 80 or older');
   }
-  if (age > 75) {
+  if (age >= 75) {
     strokes -= 1;
-    breakdown.push('-1: over 75');
+    breakdown.push('-1: 75 or older');
   }
-  if (age > 65) {
+  if (age >= 65) {
     strokes -= 1;
-    breakdown.push('-1: over 65');
+    breakdown.push('-1: 65 or older');
   }
 
   // Under 16
