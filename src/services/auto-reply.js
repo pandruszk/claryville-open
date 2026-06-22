@@ -172,7 +172,11 @@ Respond ONLY with valid JSON (no markdown fencing):
       system: systemPrompt,
     });
 
-    const text = response.content[0].text.trim();
+    let text = response.content[0].text.trim();
+    // The model sometimes wraps the JSON in a markdown code fence
+    // (```json ... ``` or ``` ... ```). Strip it before parsing.
+    const fence = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/);
+    if (fence) text = fence[1].trim();
     const parsed = JSON.parse(text);
 
     return {
