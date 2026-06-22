@@ -342,7 +342,7 @@ When someone asks about strokes, handicaps, or how many strokes they get, you MU
 Ask these naturally in conversation, not as a big dump. Once you have the info for all players, calculate the total strokes step by step showing the math, and remind them of the Sandbagger Rule (max -10 per team). Also tell each player their tee box assignment.`;
 
     const msg = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 500,
       system: systemPrompt,
       messages: chatMessages,
