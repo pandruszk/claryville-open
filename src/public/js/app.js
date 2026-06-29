@@ -62,48 +62,60 @@ document.addEventListener('DOMContentLoaded', function () {
     recalcTeeTimes();
     var dragItem = null;
 
+    // Find the item the dragged row should be inserted *before*, based on the
+    // pointer's vertical position. Returns null when the pointer is below the
+    // last row (append to end). This makes dropping anywhere in the list work,
+    // including above the first row — the case native drag-on-target missed.
+    function dragAfterElement(y) {
+      var els = Array.prototype.slice.call(
+        teeList.querySelectorAll('.tee-order-item:not(.tee-dragging)')
+      );
+      var closest = { offset: -Infinity, el: null };
+      for (var i = 0; i < els.length; i++) {
+        var box = els[i].getBoundingClientRect();
+        var offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+          closest = { offset: offset, el: els[i] };
+        }
+      }
+      return closest.el;
+    }
+
     teeList.addEventListener('dragstart', function (e) {
       dragItem = e.target.closest('.tee-order-item');
       if (dragItem) {
+        dragItem.classList.add('tee-dragging');
         dragItem.style.opacity = '0.4';
         e.dataTransfer.effectAllowed = 'move';
       }
     });
 
-    teeList.addEventListener('dragend', function (e) {
-      if (dragItem) dragItem.style.opacity = '1';
+    teeList.addEventListener('dragend', function () {
+      if (dragItem) {
+        dragItem.style.opacity = '1';
+        dragItem.classList.remove('tee-dragging');
+      }
       dragItem = null;
-      document.querySelectorAll('.tee-order-item').forEach(function (el) {
-        el.classList.remove('drag-over');
-      });
+      renumberTeeOrder();
     });
 
+    // Live-reposition the dragged row as the pointer moves, so the DOM order is
+    // always current — the drop itself needs no special handling.
     teeList.addEventListener('dragover', function (e) {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      var target = e.target.closest('.tee-order-item');
-      if (target && target !== dragItem) {
-        document.querySelectorAll('.tee-order-item').forEach(function (el) {
-          el.classList.remove('drag-over');
-        });
-        target.classList.add('drag-over');
+      if (!dragItem) return;
+      var after = dragAfterElement(e.clientY);
+      if (after == null) {
+        teeList.appendChild(dragItem);
+      } else if (after !== dragItem) {
+        teeList.insertBefore(dragItem, after);
       }
     });
 
     teeList.addEventListener('drop', function (e) {
       e.preventDefault();
-      var target = e.target.closest('.tee-order-item');
-      if (target && dragItem && target !== dragItem) {
-        var items = Array.from(teeList.children);
-        var dragIdx = items.indexOf(dragItem);
-        var targetIdx = items.indexOf(target);
-        if (dragIdx < targetIdx) {
-          teeList.insertBefore(dragItem, target.nextSibling);
-        } else {
-          teeList.insertBefore(dragItem, target);
-        }
-        renumberTeeOrder();
-      }
+      renumberTeeOrder();
     });
 
     // Listen for start time / interval changes
