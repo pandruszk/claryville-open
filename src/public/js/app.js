@@ -273,6 +273,15 @@ function saveTeeSettings() {
   iv.type = 'hidden'; iv.name = 'tee_interval'; iv.value = intervalInput.value;
   form.appendChild(iv);
 
+  // Include the CSRF token (read from any rendered _csrf field on the page),
+  // otherwise the server rejects the POST with "Invalid CSRF token".
+  var csrfField = document.querySelector('input[name="_csrf"]');
+  if (csrfField) {
+    var c = document.createElement('input');
+    c.type = 'hidden'; c.name = '_csrf'; c.value = csrfField.value;
+    form.appendChild(c);
+  }
+
   document.body.appendChild(form);
   form.submit();
 }
