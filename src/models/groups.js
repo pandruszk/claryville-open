@@ -69,7 +69,12 @@ const Groups = {
   },
 
   getAllByTeeOrder() {
-    return db.prepare('SELECT * FROM groups WHERE tee_order IS NOT NULL ORDER BY tee_order ASC').all();
+    const groups = db.prepare('SELECT * FROM groups WHERE tee_order IS NOT NULL ORDER BY tee_order ASC').all();
+    const playersByGroup = db.prepare('SELECT * FROM players WHERE group_id = ? ORDER BY id');
+    for (const g of groups) {
+      g.players = playersByGroup.all(g.id);
+    }
+    return groups;
   },
 };
 

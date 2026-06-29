@@ -70,7 +70,6 @@ TEE BOX ASSIGNMENTS:
 - Women: Yellow tees
 - Women 80 or older: Orange tees
 - Kids under 10: Orange tees
-- Only plays golf at Claryville Open: Orange tees
 
 PRIZES:
 - Low Net Team Score

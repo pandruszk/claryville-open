@@ -125,8 +125,6 @@ function getTeeBox(player) {
   const gender = player.gender;
   const ghin = player.ghin_index;
 
-  if (player.only_plays_claryville) return 'Orange';
-
   if (age > 0 && age < 10) return 'Orange';
 
   if (gender === 'female') {

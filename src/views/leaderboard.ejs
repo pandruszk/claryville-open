@@ -30,13 +30,15 @@
       <tr>
         <th>Tee Time</th>
         <th>Team</th>
+        <th>Players</th>
       </tr>
     </thead>
     <tbody>
       <% teeSheet.forEach(function(g, i) { %>
         <tr>
-          <td><%= calcTeeTime(i, settings.tee_start_time, settings.tee_interval) %></td>
+          <td style="white-space:nowrap"><%= calcTeeTime(i, settings.tee_start_time, settings.tee_interval) %></td>
           <td><%= g.name %></td>
+          <td><%= (g.players || []).map(function(p){ return p.display_name || p.name; }).join(', ') %></td>
         </tr>
       <% }); %>
     </tbody>

@@ -46,7 +46,10 @@
       <div class="tee-order-item" draggable="true" data-group-id="<%= g.id %>">
         <span class="tee-drag-handle">&#9776;</span>
         <span class="tee-order-pos"><%= i + 1 %>.</span>
-        <span class="tee-order-name"><%= g.name %></span>
+        <span class="tee-order-name">
+          <%= g.name %>
+          <small style="display:block;color:var(--gray-500, #6b7280);font-weight:normal"><%= g.players.map(p => p.display_name || p.name).join(', ') %></small>
+        </span>
         <span class="tee-order-time" data-index="<%= i %>"></span>
         <span class="tee-order-arrows">
           <button type="button" class="btn btn-small" onclick="moveTeeOrder(this, -1)">&uarr;</button>
