@@ -237,6 +237,18 @@ router.get('/leaderboard', (req, res) => {
   }
   if (teeSheetPublished) {
     teeSheet = Groups.getAllByTeeOrder();
+    for (const g of teeSheet) {
+      // Per-player tee box colors
+      for (const p of g.players) {
+        p.teeBox = getTeeBox(p);
+        p.teeColor = TEE_COLORS[p.teeBox];
+      }
+      // Starting score = team stroke handicap (capped, negative)
+      g.strokeInfo = calculateTeamStrokes(g.players);
+      // Ending score = net total, once scores have been entered
+      const score = Scores.getByGroup(g.id);
+      g.netTotal = score && score.net_total != null ? score.net_total : null;
+    }
   }
   res.render('leaderboard', { settings, published, netLeaderboard, grossLeaderboard, highNet, contests, teeSheetPublished, teeSheet, title: 'Leaderboard' });
 });

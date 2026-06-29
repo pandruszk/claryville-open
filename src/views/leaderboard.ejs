@@ -31,6 +31,8 @@
         <th>Tee Time</th>
         <th>Team</th>
         <th>Players</th>
+        <th style="text-align:center">Start</th>
+        <th style="text-align:center">Final</th>
       </tr>
     </thead>
     <tbody>
@@ -38,11 +40,23 @@
         <tr>
           <td style="white-space:nowrap"><%= calcTeeTime(i, settings.tee_start_time, settings.tee_interval) %></td>
           <td><%= g.name %></td>
-          <td><%= (g.players || []).map(function(p){ return p.display_name || p.name; }).join(', ') %></td>
+          <td>
+            <% (g.players || []).forEach(function(p, pi){ %><%
+              %><span style="display:inline-flex;align-items:center;gap:0.3rem;white-space:nowrap;margin-right:0.6rem"><%
+                %><span class="tee-dot" style="display:inline-block;width:0.7rem;height:0.7rem;border-radius:50%;background:<%= p.teeColor || '#ccc' %>;border:1px solid rgba(0,0,0,0.2)" title="<%= p.teeBox %> tees"></span><%
+                %><%= p.display_name || p.name %><%
+              %></span><%
+            %><% }); %>
+          </td>
+          <td style="text-align:center;white-space:nowrap"><%= g.strokeInfo ? (g.strokeInfo.capped > 0 ? '+' : '') + g.strokeInfo.capped : '' %></td>
+          <td style="text-align:center;white-space:nowrap"><%= g.netTotal != null ? g.netTotal : '—' %></td>
         </tr>
       <% }); %>
     </tbody>
   </table>
+  <p class="form-hint" style="margin-top:-1.25rem;margin-bottom:2rem">
+    Colored dots show each player's tee box. <strong>Start</strong> is the team's stroke handicap; <strong>Final</strong> is the net score once the round is scored.
+  </p>
 <% } else if (!published) { %>
   <div class="alert alert-info">Results will be posted after the tournament. Check back soon!</div>
 <% } %>
