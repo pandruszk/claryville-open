@@ -523,6 +523,69 @@ router.post('/tee-settings', express.urlencoded({ extended: true }), (req, res) 
   res.redirect('/admin/scores');
 });
 
+// Compute a tee time string for slot i, mirroring the client-side recalcTeeTimes.
+function teeTimeForSlot(startTime, intervalMin, i) {
+  const match = String(startTime || '8:00 AM').match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!match) return '';
+  let h = parseInt(match[1], 10);
+  const m = parseInt(match[2], 10);
+  const ampm = match[3].toUpperCase();
+  if (ampm === 'PM' && h !== 12) h += 12;
+  if (ampm === 'AM' && h === 12) h = 0;
+  const total = h * 60 + m + i * intervalMin;
+  const nh = Math.floor(total / 60) % 24;
+  const nm = total % 60;
+  const suffix = nh >= 12 ? 'PM' : 'AM';
+  const dispH = nh % 12 || 12;
+  return `${dispH}:${nm < 10 ? '0' : ''}${nm} ${suffix}`;
+}
+
+// Escape a value for CSV (quote if it contains comma, quote, or newline).
+function csvCell(v) {
+  const s = (v === null || v === undefined) ? '' : String(v);
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+
+// Export the tee sheet as a CSV (opens directly in Excel).
+router.get('/scores/tee-sheet.csv', (req, res) => {
+  const settings = getSettings();
+  const startTime = settings.tee_start_time || '8:00 AM';
+  const interval = parseInt(settings.tee_interval, 10) || 7;
+
+  // Same ordering as the tee-sheet view: groups with players, by tee_order
+  // (nulls last), then by id.
+  const teeGroups = Groups.getAllWithPlayers()
+    .filter(g => g.players.length > 0)
+    .sort((a, b) => {
+      if (a.tee_order != null && b.tee_order != null) return a.tee_order - b.tee_order;
+      if (a.tee_order != null) return -1;
+      if (b.tee_order != null) return 1;
+      return a.id - b.id;
+    });
+
+  const header = ['Tee Time', 'Group', 'Player 1', 'Player 2', 'Player 3', 'Player 4', 'Team Strokes'];
+  const rows = [header];
+  teeGroups.forEach((g, i) => {
+    const names = g.players.map(p => p.display_name || p.name);
+    const strokeInfo = calculateTeamStrokes(g.players);
+    rows.push([
+      teeTimeForSlot(startTime, interval, i),
+      g.name,
+      names[0] || '',
+      names[1] || '',
+      names[2] || '',
+      names[3] || '',
+      strokeInfo.capped,
+    ]);
+  });
+
+  const csv = rows.map(r => r.map(csvCell).join(',')).join('\r\n');
+  const year = settings.tournament_year || new Date().getFullYear();
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="claryville-open-${year}-tee-sheet.csv"`);
+  res.send('﻿' + csv); // BOM so Excel reads UTF-8 correctly
+});
+
 router.post('/scores/:groupId', express.urlencoded({ extended: true }), (req, res) => {
   const groupId = parseInt(req.params.groupId);
   const holes = [];

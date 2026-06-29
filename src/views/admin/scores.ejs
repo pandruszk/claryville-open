@@ -55,9 +55,11 @@
       </div>
     <% }); %>
   </div>
-  <div style="margin-top:0.75rem">
+  <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap">
     <button type="button" class="btn btn-primary" onclick="saveTeeOrder()">Save Tee Order</button>
+    <a href="/admin/scores/tee-sheet.csv" class="btn btn-small">Export to Excel</a>
   </div>
+  <p class="form-hint" style="margin-top:0.5rem">Export reflects the saved start time, interval, and order. Save first if you've made changes.</p>
 </div>
 
 <!-- Contest Winners -->
